@@ -3,6 +3,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/presentation/components/ui/button';
 import { Card, CardContent } from '@/presentation/components/ui/card';
+import {
+  FunnelIcon,
+  XMarkIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 
 interface FilterOption {
   label: string;
@@ -43,19 +48,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <svg
-              className="h-5 w-5 text-neutral-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
-              />
-            </svg>
+            <FunnelIcon className="h-5 w-5 text-neutral-500" />
             <span className="font-medium text-neutral-700">Filters</span>
             {hasActiveFilters && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
@@ -75,19 +68,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
             {hasActiveFilters && (
               <Button variant="outline" size="sm" onClick={onClearFilters}>
-                <svg
-                  className="h-4 w-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <XMarkIcon className="h-4 w-4 mr-1" />
                 Clear
               </Button>
             )}
@@ -97,6 +78,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         {isExpanded && (
           <div className="mt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Status Filter */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Status
@@ -130,6 +112,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 </select>
               </div>
 
+              {/* Date Range Filter */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Start Date
@@ -180,25 +163,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </div>
             </div>
 
+            {/* Search Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Patient Search
                 </label>
                 <div className="relative">
-                  <svg
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
                     type="text"
                     placeholder="Search by patient name or ID..."
@@ -216,19 +188,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   Practitioner Search
                 </label>
                 <div className="relative">
-                  <svg
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                   <input
                     type="text"
                     placeholder="Search by practitioner name..."

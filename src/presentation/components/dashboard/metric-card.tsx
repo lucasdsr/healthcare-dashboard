@@ -30,10 +30,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <CardTitle className="text-sm font-medium text-neutral-600">
         {title}
       </CardTitle>
-      {icon && <div className="h-4 w-4 text-neutral-400">{icon}</div>}
+      {icon && (
+        <div className="h-5 w-5 text-neutral-400 flex-shrink-0">{icon}</div>
+      )}
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold text-neutral-900">{value}</div>
+      <div className="text-2xl font-bold text-neutral-900 mb-1">{value}</div>
       {change && (
         <p
           className={cn(

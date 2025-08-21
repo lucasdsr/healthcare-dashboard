@@ -37,7 +37,7 @@ export const colors = {
   neutral: {
     50: '#fafafa',
     100: '#f5f5f5',
-    200: '#e5e5e5',
+    200: '#e5e7eb',
     300: '#d4d4d4',
     400: '#a3a3a3',
     500: '#737373',
@@ -88,4 +88,30 @@ export const shadows = {
   md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
   lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
   xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+};
+
+export const borderRadius = {
+  none: '0',
+  sm: '0.125rem',
+  base: '0.25rem',
+  md: '0.375rem',
+  lg: '0.5rem',
+  xl: '0.75rem',
+  '2xl': '1rem',
+  '3xl': '1.5rem',
+  full: '9999px',
+};
+
+export const transitions = {
+  default: '150ms ease-in-out',
+  fast: '100ms ease-in-out',
+  slow: '300ms ease-in-out',
+};
+
+export const breakpoints = {
+  sm: '640px',
+  md: '768px',
+  lg: '1024px',
+  xl: '1280px',
+  '2xl': '1536px',
 };
