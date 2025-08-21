@@ -7,13 +7,13 @@ export interface CacheService {
   getKeys(): Promise<string[]>;
 }
 
-export interface CacheEntry<T> {
+export interface CacheServiceEntry<T> {
   value: T;
   expiresAt: number;
 }
 
 export class InMemoryCacheService implements CacheService {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheServiceEntry<any>>();
   private readonly defaultTTL = 5 * 60 * 1000; // 5 minutes
 
   async get<T>(key: string): Promise<T | null> {
@@ -109,7 +109,7 @@ export class LocalStorageCacheService implements CacheService {
         return null;
       }
 
-      const entry: CacheEntry<T> = JSON.parse(item);
+      const entry: CacheServiceEntry<T> = JSON.parse(item);
 
       if (Date.now() > entry.expiresAt) {
         localStorage.removeItem(fullKey);
@@ -126,7 +126,7 @@ export class LocalStorageCacheService implements CacheService {
     try {
       const fullKey = this.getFullKey(key);
       const expiresAt = Date.now() + (ttl || this.defaultTTL);
-      const entry: CacheEntry<T> = { value, expiresAt };
+      const entry: CacheServiceEntry<T> = { value, expiresAt };
 
       localStorage.setItem(fullKey, JSON.stringify(entry));
     } catch (error) {
@@ -164,7 +164,7 @@ export class LocalStorageCacheService implements CacheService {
         return false;
       }
 
-      const entry: CacheEntry<any> = JSON.parse(item);
+      const entry: CacheServiceEntry<any> = JSON.parse(item);
 
       if (Date.now() > entry.expiresAt) {
         localStorage.removeItem(fullKey);
