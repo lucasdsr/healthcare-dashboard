@@ -36,6 +36,21 @@ export interface EncounterSearchParams {
   _offset?: number;
 }
 
+export interface FHIRBundle<T> {
+  resourceType: 'Bundle';
+  type:
+    | 'searchset'
+    | 'collection'
+    | 'history'
+    | 'batch'
+    | 'transaction'
+    | 'document'
+    | 'message';
+  total?: number;
+  entry?: Array<{ resource: T }>;
+  link?: Array<{ relation: string; url: string }>;
+}
+
 export class FHIRApiClientImpl implements FHIRApiClient {
   private baseUrl: string;
   private headers: Record<string, string>;
@@ -57,16 +72,26 @@ export class FHIRApiClientImpl implements FHIRApiClient {
     options?: RequestInit
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const response = await fetch(url, {
-      headers: this.headers,
-      ...options,
-    });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(url, {
+        headers: this.headers,
+        ...options,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `HTTP error! status: ${response.status}, message: ${errorText}`
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`API request failed for ${endpoint}:`, error);
+      throw error;
     }
-
-    return response.json();
   }
 
   async getPatient(id: string): Promise<Patient> {
@@ -78,16 +103,14 @@ export class FHIRApiClientImpl implements FHIRApiClient {
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
+        if (value !== undefined && value !== null) {
           searchParams.append(key, value.toString());
         }
       });
     }
 
     const endpoint = `/Patient${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    const response = await this.request<{
-      entry?: Array<{ resource: Patient }>;
-    }>(endpoint);
+    const response = await this.request<FHIRBundle<Patient>>(endpoint);
 
     return response.entry?.map(entry => entry.resource) || [];
   }
@@ -101,16 +124,14 @@ export class FHIRApiClientImpl implements FHIRApiClient {
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
+        if (value !== undefined && value !== null) {
           searchParams.append(key, value.toString());
         }
       });
     }
 
     const endpoint = `/Encounter${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    const response = await this.request<{
-      entry?: Array<{ resource: Encounter }>;
-    }>(endpoint);
+    const response = await this.request<FHIRBundle<Encounter>>(endpoint);
 
     return response.entry?.map(entry => entry.resource) || [];
   }

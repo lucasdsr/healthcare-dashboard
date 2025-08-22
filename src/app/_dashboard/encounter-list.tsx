@@ -1,18 +1,26 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { useEncounters } from '@/infrastructure/queries/encounter-queries';
+import { Encounter } from '@/domain/entities/encounter';
+import { Status } from '@/domain/value-objects/status';
+import { DateRange } from '@/domain/value-objects/date-range';
 import { useEncounterStore } from '@/infrastructure/store/encounter-store';
 import {
   Card,
+  CardContent,
   CardHeader,
   CardTitle,
-  CardContent,
-} from '@/presentation/components/ui/card';
-import { Button } from '@/presentation/components/ui/button';
+  Button,
+} from '@/presentation/components';
 
-export function EncounterList() {
+interface EncounterListProps {
+  filters?: any;
+}
+
+export function EncounterList({ filters }: EncounterListProps) {
   const { pagination, setPagination } = useEncounterStore();
 
   const { data, isLoading, error } = useEncounters({
+    ...filters,
     _count: pagination.pageSize,
     _page: pagination.currentPage,
   });
@@ -44,13 +52,14 @@ export function EncounterList() {
         <CardContent className="p-6">
           <div className="text-center text-red-600">
             <p>Error loading encounters: {error.message}</p>
+            <p className="text-sm mt-2">Please check your API connection</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const encounters = data?.entry?.map(entry => entry.resource) || [];
+  const encounters = data?.encounters || [];
 
   return (
     <div className="space-y-4">
@@ -79,6 +88,14 @@ export function EncounterList() {
                       <p className="text-sm text-gray-600">
                         Patient: {encounter.subject.reference}
                       </p>
+                      {encounter.period?.start && (
+                        <p className="text-sm text-gray-600">
+                          Date:{' '}
+                          {new Date(
+                            encounter.period.start
+                          ).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium healthcare-status-${encounter.status}`}

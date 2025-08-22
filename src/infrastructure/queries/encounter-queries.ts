@@ -1,79 +1,78 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
-import { FhirClient } from '../api/fhir-client';
+import {
+  fhirService,
+  DashboardMetrics,
+  EncounterFilters,
+} from '../api/fhir-service';
 import { useEncounterStore } from '../store/encounter-store';
 
-const fhirClient = new FhirClient(
-  process.env.NEXT_PUBLIC_FHIR_BASE_URL || 'https://hapi.fhir.org/baseR4'
-);
-
-export const useEncounters = (params: {
-  _count?: number;
-  _page?: number;
-  status?: string;
-  date?: string;
-  patient?: string;
-}) => {
-  const { setEncounters, setPagination } = useEncounterStore();
+export const useDashboardMetrics = (filters?: EncounterFilters) => {
+  const { setEncounters } = useEncounterStore();
 
   return useQuery({
-    queryKey: ['encounters', params],
+    queryKey: ['dashboard-metrics', filters],
     queryFn: async () => {
-      const result = await fhirClient.getEncounters(params);
+      const metrics = await fhirService.getDashboardMetrics(filters);
 
-      // Normalize and store data
-      if (result.entry) {
-        const encounters = result.entry.map(entry => entry.resource);
-        setEncounters(encounters);
-
-        // Extract pagination info
-        if (result.total) {
-          setPagination({
-            totalCount: result.total,
-            totalPages: Math.ceil(result.total / (params._count || 50)),
-          });
-        }
+      if (filters) {
+        const encountersData = await fhirService.getEncounters(filters);
+        setEncounters(encountersData.encounters);
       }
 
-      return result;
+      return metrics;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
-export const useInfiniteEncounters = (params: {
-  _count?: number;
-  status?: string;
-  date?: string;
-  patient?: string;
-}) => {
-  const { setEncounters } = useEncounterStore();
+export const useEncounters = (filters?: EncounterFilters) => {
+  const { setEncounters, setPagination } = useEncounterStore();
 
-  return useInfiniteQuery({
-    queryKey: ['encounters', 'infinite', params],
-    queryFn: async ({ pageParam = 1 }) => {
-      const result = await fhirClient.getEncounters({
-        ...params,
-        _page: pageParam as number,
-        _count: params._count || 50,
+  return useQuery({
+    queryKey: ['encounters', filters],
+    queryFn: async () => {
+      const result = await fhirService.getEncounters(filters);
+
+      setEncounters(result.encounters);
+      setPagination({
+        currentPage: result.currentPage,
+        totalCount: result.total,
+        totalPages: Math.ceil(result.total / result.pageSize),
+        pageSize: result.pageSize,
       });
-
-      if (result.entry) {
-        const encounters = result.entry.map(entry => entry.resource);
-        setEncounters(encounters);
-      }
 
       return result;
     },
-    getNextPageParam: (lastPage: any, allPages) => {
-      if (lastPage.entry && lastPage.entry.length === (params._count || 50)) {
+    staleTime: 1 * 60 * 1000, // 1 minute
+    gcTime: 3 * 60 * 1000, // 3 minutes
+  });
+};
+
+export const useInfiniteEncounters = (filters?: EncounterFilters) => {
+  const { setEncounters } = useEncounterStore();
+
+  return useInfiniteQuery({
+    queryKey: ['encounters', 'infinite', filters],
+    queryFn: async ({ pageParam = 1 }) => {
+      const result = await fhirService.getEncounters({
+        ...filters,
+        _page: pageParam as number,
+        _count: filters?._count || 50,
+      });
+
+      setEncounters(result.encounters);
+      return result;
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.encounters.length === (filters?._count || 50)) {
         return allPages.length + 1;
       }
       return undefined;
     },
     initialPageParam: 1,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
+    gcTime: 3 * 60 * 1000,
   });
 };
 
@@ -83,7 +82,7 @@ export const useEncounter = (id: string) => {
   return useQuery({
     queryKey: ['encounter', id],
     queryFn: async () => {
-      const encounter = await fhirClient.getEncounter(id);
+      const encounter = await fhirService.getEncounter(id);
       setEncounter(encounter);
       return encounter;
     },
@@ -100,7 +99,7 @@ export const usePatient = (id: string) => {
   return useQuery({
     queryKey: ['patient', id],
     queryFn: async () => {
-      const patient = await fhirClient.getPatient(id);
+      const patient = await fhirService.getPatient(id);
       setPatient(patient);
       return patient;
     },
@@ -111,36 +110,11 @@ export const usePatient = (id: string) => {
   });
 };
 
-export const usePractitioner = (id: string) => {
-  const { getPractitioner, setPractitioner } = useEncounterStore();
-
-  return useQuery({
-    queryKey: ['practitioner', id],
-    queryFn: async () => {
-      const practitioner = await fhirClient.getPractitioner(id);
-      setPractitioner(practitioner);
-      return practitioner;
-    },
-    enabled: !!id,
-    staleTime: 60 * 60 * 1000, // 1 hour
-    gcTime: 2 * 60 * 60 * 1000, // 2 hours
-    initialData: getPractitioner(id),
+export const usePatientSearch = (query: string) =>
+  useQuery({
+    queryKey: ['patient-search', query],
+    queryFn: () => fhirService.searchPatients(query),
+    enabled: query.length > 2,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
-};
-
-export const useOrganization = (id: string) => {
-  const { getOrganization, setOrganization } = useEncounterStore();
-
-  return useQuery({
-    queryKey: ['organization', id],
-    queryFn: async () => {
-      const organization = await fhirClient.getOrganization(id);
-      setOrganization(organization);
-      return organization;
-    },
-    enabled: !!id,
-    staleTime: 24 * 60 * 60 * 1000, // 24 hours
-    gcTime: 48 * 60 * 60 * 1000, // 48 hours
-    initialData: getOrganization(id),
-  });
-};

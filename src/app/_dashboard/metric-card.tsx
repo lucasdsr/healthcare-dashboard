@@ -4,7 +4,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-} from '@/presentation/components/ui/card';
+} from '@/presentation/components';
 import { cn } from '@/shared/utils/cn';
 
 interface MetricCardProps {

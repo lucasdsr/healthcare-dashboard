@@ -1,98 +1,96 @@
 # Healthcare Dashboard
 
-A modern, scalable healthcare dashboard built with Next.js, TypeScript, and FHIR standards.
+A modern, real-time healthcare dashboard built with Next.js, TypeScript, and FHIR integration for monitoring patient encounters and healthcare metrics.
 
-## 🏗️ Architecture
+## 🚀 Features
 
-This project follows Clean Architecture principles with a clear separation of concerns:
+- **Real-time Metrics**: Live healthcare data with automatic updates
+- **Interactive Charts**: Status distribution and daily trends visualization
+- **Advanced Filtering**: Multi-criteria search and filtering capabilities
+- **FHIR Integration**: Built-in support for healthcare data standards
+- **Responsive Design**: Mobile-first responsive layout
+- **Performance Optimized**: Caching, pagination, and efficient data loading
 
-- **Domain Layer**: Core business entities and value objects
-- **Application Layer**: Use cases and business logic
-- **Infrastructure Layer**: External services and data access
-- **Presentation Layer**: UI components and pages
+## 🏥 FHIR Integration Status
 
-## 🚀 Phase 1: Foundation & Core Architecture
+### Current State
 
-Phase 1 has been completed with the following features:
+The dashboard is currently connected to the **public HAPI FHIR test server** (`https://hapi.fhir.org/baseR4`). This server:
 
-### ✅ Completed Features
+- ✅ Is publicly accessible
+- ✅ Supports FHIR R4 standard
+- ❌ May have limited or no real data
+- ❌ Is shared by many users
+- ❌ Has rate limiting
 
-- **Project Structure**: Clean architecture folder organization
-- **TypeScript Configuration**: Strict mode with path aliases
-- **FHIR Types**: Complete FHIR resource type definitions
-- **Domain Entities**: Patient and Encounter entities
-- **Value Objects**: DateRange and Status with business logic
-- **Repository Interfaces**: Data access abstractions
-- **Use Cases**: Business logic implementation
-- **API Client**: FHIR API integration
-- **Cache Service**: In-memory and localStorage caching
-- **UI Components**: Reusable Radix UI components
-- **Design System**: Tailwind CSS with healthcare-specific styles
-- **Testing**: Jest setup with comprehensive test coverage
+### Demo Mode
 
-### 🏥 FHIR Resources
+When the HAPI server has no data, the dashboard automatically switches to **Demo Mode** with:
 
-- **Patient**: Complete patient information model
-- **Encounter**: Healthcare encounter tracking
-- **Value Objects**: DateRange, Status with business rules
+- Sample encounter data (50,000+ encounters)
+- Realistic healthcare metrics
+- Interactive filtering and visualization
+- Full dashboard functionality
 
-### 🎨 UI Components
+### Getting Real Data
 
-- **Button**: Variant-based button component
-- **Card**: Flexible card layout system
-- **Design System**: Healthcare-specific color palette and utilities
+To use real healthcare data, you can:
 
-### 🧪 Testing
+1. **Set up your own FHIR server** (see [FHIR Server Setup Guide](docs/fhir-server-setup.md))
+2. **Use cloud FHIR services** (Azure, AWS, Google Cloud)
+3. **Configure local development** with HAPI FHIR
 
-- **Test Coverage**: 58 tests passing
-- **Coverage Areas**: Domain entities, value objects, UI components, utilities
-- **Test Setup**: Jest with React Testing Library
+## 🛠️ Technology Stack
 
-## 🛠️ Tech Stack
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS, CSS Modules
+- **State Management**: Zustand, React Query
+- **Charts**: Custom chart components with Tailwind
+- **API**: FHIR REST API client
+- **Testing**: Jest, React Testing Library
+- **Build Tool**: Vite, SWC
 
-- **Framework**: Next.js 15
-- **Language**: TypeScript 5
-- **Styling**: Tailwind CSS 4
-- **UI Library**: Radix UI
-- **State Management**: Zustand
-- **Data Fetching**: TanStack Query
-- **Testing**: Jest + React Testing Library
-- **Package Manager**: pnpm
+## 📊 Dashboard Components
 
-## 📁 Project Structure
+### Metrics Dashboard
 
-```
-src/
-├── app/                    # Next.js App Router
-├── domain/                 # Business entities and rules
-│   ├── entities/          # FHIR entities (Patient, Encounter)
-│   ├── value-objects/     # Business value objects
-│   └── repositories/      # Data access interfaces
-├── application/            # Business logic and use cases
-│   └── use-cases/         # Application use cases
-├── infrastructure/         # External services
-│   ├── api/               # FHIR API client
-│   └── cache/             # Caching services
-├── presentation/           # UI components
-│   └── components/        # Reusable components
-└── shared/                 # Shared utilities
-    ├── types/             # TypeScript types
-    ├── utils/             # Utility functions
-    └── constants/         # Application constants
-```
+- Total encounters count
+- Active encounters
+- Daily averages
+- Real-time updates
 
-## 🚀 Getting Started
+### Interactive Charts
+
+- **Status Distribution**: Encounter status breakdown
+- **Daily Trends**: Volume trends over time
+- **Responsive Design**: Adapts to screen size
+
+### Advanced Filtering
+
+- Status-based filtering
+- Date range selection
+- Patient search with autocomplete
+- Practitioner search
+
+### Data Management
+
+- Automatic pagination
+- Real-time data updates
+- Optimistic updates
+- Error handling and retry logic
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- pnpm 8+
+- pnpm (recommended) or npm
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/your-username/healthcare-dashboard.git
 cd healthcare-dashboard
 
 # Install dependencies
@@ -100,59 +98,127 @@ pnpm install
 
 # Start development server
 pnpm dev
-
-# Run tests
-pnpm test
-
-# Build for production
-pnpm build
 ```
 
-### Environment Variables
+The dashboard will be available at `http://localhost:3000`
 
-Create a `.env.local` file:
+### Environment Configuration
 
-```env
-NEXT_PUBLIC_FHIR_BASE_URL=http://localhost:8080/fhir
+Create a `.env.local` file for custom FHIR server configuration:
+
+```bash
+# Optional: Custom FHIR server (defaults to HAPI public server)
+NEXT_PUBLIC_FHIR_BASE_URL=https://your-fhir-server.com/baseR4
+
+# Optional: API key if required
+NEXT_PUBLIC_FHIR_API_KEY=your_api_key
 ```
 
-## 📊 Current Status
+## 🔧 Configuration
 
-- **Phase 1**: ✅ Complete
-- **Phase 2**: 🔄 Next (Data Layer Implementation)
-- **Phase 3**: ⏳ Pending (Core Dashboard)
-- **Phase 4**: ⏳ Pending (Advanced Features)
-- **Phase 5**: ⏳ Pending (Testing & Polish)
+### FHIR Server Setup
+
+The dashboard automatically connects to the HAPI FHIR public server. For production use:
+
+1. **Set up your own FHIR server** (see [FHIR Server Setup Guide](docs/fhir-server-setup.md))
+2. **Configure environment variables**
+3. **Set up authentication** if required
+4. **Populate with real data**
+
+### Customization
+
+- **Design System**: Modify `src/shared/design-tokens.ts`
+- **API Endpoints**: Update `src/shared/config/api.ts`
+- **Components**: Extend components in `src/presentation/components/`
+- **Data Models**: Modify entities in `src/domain/entities/`
+
+## 📁 Project Structure
+
+```
+src/
+├── app/                    # Next.js app router
+├── components/            # Reusable UI components
+├── domain/               # Business logic and entities
+├── infrastructure/       # External services and APIs
+├── presentation/         # UI components and pages
+└── shared/              # Utilities and configurations
+```
 
 ## 🧪 Testing
 
 ```bash
-# Run all tests
+# Run unit tests
 pnpm test
 
 # Run tests in watch mode
 pnpm test:watch
 
-# Generate coverage report
+# Run tests with coverage
 pnpm test:coverage
 ```
 
-## 📝 Development Guidelines
+## 📚 Documentation
 
-- Follow Clean Architecture principles
-- Write comprehensive tests for new features
-- Use TypeScript strict mode
-- Follow the established folder structure
-- Reuse existing components when possible
-- Maintain FHIR compliance
+- [API Integration Guide](docs/api-integration.md) - FHIR API integration details
+- [FHIR Server Setup](docs/fhir-server-setup.md) - Setting up your own FHIR server
+- [Component Library](docs/components.md) - UI component documentation
+- [Architecture Guide](docs/architecture.md) - System architecture overview
 
-## 🔗 FHIR Resources
+## 🌟 Key Benefits
 
-This project implements FHIR R4 standards for healthcare data exchange. For more information, visit:
+### For Healthcare Providers
 
-- [FHIR Specification](https://www.hl7.org/fhir/)
-- [FHIR Resources](https://www.hl7.org/fhir/resourcelist.html)
+- **Real-time Monitoring**: Live encounter tracking
+- **Data Visualization**: Clear insights into healthcare operations
+- **Efficient Filtering**: Quick access to specific data
+- **Standards Compliance**: Built on FHIR healthcare standards
+
+### For Developers
+
+- **Modern Stack**: Latest React and Next.js features
+- **Type Safety**: Full TypeScript coverage
+- **Performance**: Optimized for large datasets
+- **Extensible**: Easy to add new features
+
+### For Organizations
+
+- **Cost Effective**: Open source with cloud deployment options
+- **Scalable**: Handles growing data volumes
+- **Secure**: Built with security best practices
+- **Compliant**: FHIR standard compliance
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-username/healthcare-dashboard/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/healthcare-dashboard/discussions)
+- **Documentation**: Check the [docs/](docs/) folder
+
+## 🔮 Roadmap
+
+- [ ] Real-time WebSocket connections
+- [ ] Advanced analytics and reporting
+- [ ] Bulk data operations
+- [ ] Offline support with service workers
+- [ ] Multi-tenant FHIR server support
+- [ ] Mobile app companion
+- [ ] AI-powered insights
+- [ ] Integration with EHR systems
+
+## 🙏 Acknowledgments
+
+- [HAPI FHIR](https://hapifhir.io/) - FHIR server implementation
+- [HL7 FHIR](https://www.hl7.org/fhir/) - Healthcare data standards
+- [Next.js](https://nextjs.org/) - React framework
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
