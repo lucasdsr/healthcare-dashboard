@@ -11,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
   Button,
+  QueryStateHandler,
+  LoadingSpinner,
 } from '@/presentation/components';
 
 interface EncounterListProps {
@@ -43,34 +45,25 @@ const EncounterRow: React.FC<EncounterRowProps> = React.memo(
     return (
       <div style={style}>
         <div className="bg-white border-b border-gray-100 px-6 py-4 hover:bg-gray-50 transition-colors last:border-b-0">
-          <div className="flex justify-between items-center">
-            <div className="flex-1 grid grid-cols-4 gap-6">
-              <div className="flex items-center">
-                <div className="bg-blue-100 text-blue-800 text-xs font-mono px-2 py-1 rounded-md">
-                  #{encounter.id || 'Unknown'}
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
-                  {encounter.subject?.reference || 'Unknown Patient'}
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="text-sm font-medium text-gray-900 capitalize">
-                  {encounter.status
-                    ? encounter.status.replace('-', ' ')
-                    : 'Unknown'}
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="text-sm font-medium text-gray-900">
-                  {encounter.period?.start
-                    ? new Date(encounter.period.start).toLocaleDateString()
-                    : 'N/A'}
-                </div>
+          <div className="grid grid-cols-4 gap-6">
+            <div className="flex items-center">
+              <div className="bg-blue-100 text-blue-800 text-xs font-mono px-2 py-1 rounded-md">
+                #{encounter.id || 'Unknown'}
               </div>
             </div>
-            <div className="ml-6 flex-shrink-0">
+            <div className="flex items-center">
+              <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                {encounter.subject?.reference || 'Unknown Patient'}
+              </div>
+            </div>
+            <div className="flex items-center">
+              <div className="text-sm font-medium text-gray-900">
+                {encounter.period?.start
+                  ? new Date(encounter.period.start).toLocaleDateString()
+                  : 'N/A'}
+              </div>
+            </div>
+            <div className="flex items-center justify-center">
               <span
                 className={`px-3 py-1.5 rounded-full text-xs font-medium healthcare-status-${encounter.status}`}
               >
@@ -151,31 +144,16 @@ export function EncounterList({
           <CardTitle>Encounters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-dashed border-purple-200 rounded-lg p-8">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <div className="text-purple-700 font-medium text-lg">
-                Loading Encounters...
-              </div>
-              <div className="text-purple-500 text-sm mt-2">
-                {isFilterLoading
+          <div className="h-64 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-dashed border-purple-200 rounded-lg flex items-center justify-center">
+            <LoadingSpinner
+              size="lg"
+              text={
+                isFilterLoading
                   ? 'Applying filters to data...'
-                  : 'Fetching encounter records...'}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-red-600">
-            <p>Error loading encounters: {error.message}</p>
-            <p className="text-sm mt-2">Please check your API connection</p>
+                  : 'Loading Encounters...'
+              }
+              variant="purple"
+            />
           </div>
         </CardContent>
       </Card>
@@ -183,86 +161,94 @@ export function EncounterList({
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Encounters ({totalCount})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {encounters.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
-              No encounters found
-            </p>
-          ) : (
-            <div className="relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-4">
-                <div className="grid grid-cols-4 gap-6">
-                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                    ID
-                  </div>
-                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                    Patient
-                  </div>
-                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                    Status
-                  </div>
-                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                    Date
-                  </div>
-                </div>
-              </div>
-              <List
-                height={listHeight}
-                width="100%"
-                itemCount={encounters.length}
-                itemSize={80}
-                itemData={{ encounters }}
-                className="virtual-list-scrollbar"
-                overscanCount={5}
-              >
-                {EncounterRow}
-              </List>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {totalPages > 1 && (
+    <QueryStateHandler
+      error={error}
+      errorTitle="Error loading encounters"
+      errorMessage={error?.message}
+      errorSubtitle="Please check your API connection"
+      showCard={false}
+    >
+      <div className="space-y-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <Button
-                variant="secondary"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage <= 1}
-              >
-                Previous
-              </Button>
-
-              <div className="text-center">
-                <span className="text-sm text-gray-600">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <div className="text-xs text-gray-500 mt-1">
-                  {totalCount} total encounters
+          <CardHeader>
+            <CardTitle>Encounters ({totalCount})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {encounters.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">
+                No encounters found
+              </p>
+            ) : (
+              <div className="relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-4">
+                  <div className="grid grid-cols-4 gap-6">
+                    <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                      ID
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                      Patient
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                      Date
+                    </div>
+                    <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider text-center">
+                      Status
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-400 mt-1">
-                  Debug: localPage={localCurrentPage}, storePage=
-                  {pagination.currentPage}
-                </div>
+                <List
+                  height={listHeight}
+                  width="100%"
+                  itemCount={encounters.length}
+                  itemSize={80}
+                  itemData={{ encounters }}
+                  className="virtual-list-scrollbar"
+                  overscanCount={5}
+                >
+                  {EncounterRow}
+                </List>
               </div>
-
-              <Button
-                variant="secondary"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-              >
-                Next
-              </Button>
-            </div>
+            )}
           </CardContent>
         </Card>
-      )}
-    </div>
+
+        {totalPages > 1 && (
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <Button
+                  variant="secondary"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                >
+                  Previous
+                </Button>
+
+                <div className="text-center">
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {totalCount} total encounters
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Debug: localPage={localCurrentPage}, storePage=
+                    {pagination.currentPage}
+                  </div>
+                </div>
+
+                <Button
+                  variant="secondary"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </QueryStateHandler>
   );
 }

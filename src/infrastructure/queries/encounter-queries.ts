@@ -21,8 +21,9 @@ export const useDashboardMetrics = (filters?: EncounterFilters) => {
 
       return metrics;
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 30 * 1000, // 30 seconds - more responsive for dashboard
+    gcTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnMount: true, // Always refetch when component mounts
   });
 };
 

@@ -8,6 +8,10 @@ export { Select } from './select';
 export { ServiceWorkerRegister } from './service-worker-register';
 export { Skeleton } from './skeleton';
 export { LoadingSpinner } from './loading-spinner';
+export {
+  QueryStateHandler,
+  QueryStateHandlerWithHeader,
+} from './query-state-handler';
 
 // Charts
 export { EncounterStatusChart } from './charts/encounter-status-chart';

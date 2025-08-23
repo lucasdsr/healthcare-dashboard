@@ -4,6 +4,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  LoadingSpinner,
 } from '@/presentation/components';
 import { cn } from '@/shared/utils/cn';
 
@@ -45,15 +46,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     </CardHeader>
     <CardContent>
       {isLoading ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="h-4 bg-gradient-to-r from-blue-200 to-blue-300 rounded w-24 animate-pulse"></div>
-            <div className="h-6 w-6 bg-gradient-to-r from-blue-200 to-blue-300 rounded-lg animate-pulse"></div>
-          </div>
-          <div className="space-y-2">
-            <div className="h-8 bg-gradient-to-r from-blue-200 to-blue-300 rounded w-20 animate-pulse"></div>
-            <div className="h-4 bg-gradient-to-r from-blue-200 to-blue-300 rounded w-32 animate-pulse"></div>
-          </div>
+        <div className="h-24 flex items-center justify-center">
+          <LoadingSpinner size="md" variant="purple" />
         </div>
       ) : (
         <>

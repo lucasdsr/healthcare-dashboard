@@ -65,6 +65,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onFiltersChange,
   onLoadingChange,
 }) => {
+  // Helper function to get default date range (first day of current month to today)
+  const getDefaultDateRange = () => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return {
+      start: firstDayOfMonth,
+      end: today,
+    };
+  };
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [pendingFilters, setPendingFilters] = useState(filters);
   const [patientSearchQuery, setPatientSearchQuery] = useState(
@@ -104,6 +114,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         onLoadingChange(false);
       }
     }, 2000);
+  };
+
+  const handleResetFilters = () => {
+    // Reset to default date range (first day of current month to today)
+    const defaultFilters = {
+      dateRange: getDefaultDateRange(),
+    };
+
+    setPendingFilters(defaultFilters);
+    setPatientSearchQuery('');
+    onFiltersChange(defaultFilters);
   };
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
@@ -417,10 +438,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
               <Button
                 variant="success"
-                onClick={() => {
-                  setPendingFilters({});
-                  handleApplyFilters();
-                }}
+                onClick={handleResetFilters}
                 disabled={!hasActiveFilters}
               >
                 Reset

@@ -46,25 +46,51 @@ const transformFiltersToFHIR = (filters: DashboardFilters) => {
 };
 
 export const DashboardLayout: React.FC = () => {
-  const [filters, setFilters] = useState<DashboardFilters>({});
+  // Helper function to get default date range (first day of current month to today)
+  const getDefaultDateRange = () => {
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return {
+      start: firstDayOfMonth,
+      end: today,
+    };
+  };
+
+  const [filters, setFilters] = useState<DashboardFilters>({
+    dateRange: getDefaultDateRange(),
+  });
   const [showInfo, setShowInfo] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [isFirstRender, setIsFirstRender] = useState(true);
 
   useEffect(() => {
     // Simulate initial load completion
     const timer = setTimeout(() => {
       setIsInitialLoad(false);
+
+      // Add a small loading state for default filters on first render
+      if (isFirstRender) {
+        setIsFilterLoading(true);
+        const filterTimer = setTimeout(() => {
+          setIsFilterLoading(false);
+          setIsFirstRender(false);
+        }, 500);
+        return () => clearTimeout(filterTimer);
+      }
     }, 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isFirstRender]);
 
   const handleFiltersChange = useCallback((newFilters: DashboardFilters) => {
     setFilters(newFilters);
   }, []);
 
   const handleClearFilters = useCallback(() => {
-    setFilters({});
+    // Reset to default date range (first day of current month to today)
+    setFilters({
+      dateRange: getDefaultDateRange(),
+    });
   }, []);
 
   const handleFilterLoading = useCallback((loading: boolean) => {

@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useDashboardMetrics } from '@/infrastructure/queries/encounter-queries';
 import { useEncounterStore } from '@/infrastructure/store/encounter-store';
-import { MetricLoading } from './metric-loading';
-import { MetricError } from './metric-error';
 import { MetricCards } from './metric-cards';
-import { LoadingSpinner } from '@/presentation/components';
+import { QueryStateHandler } from '@/presentation/components';
 
 interface MetricsDashboardProps {
   filters?: any;
@@ -17,27 +15,35 @@ export const MetricsDashboard: React.FC<MetricsDashboardProps> = ({
   filters,
   isFilterLoading = false,
 }) => {
-  const { data: metrics, error } = useDashboardMetrics(filters);
+  const {
+    data: metrics,
+    error,
+    isLoading: isQueryLoading,
+  } = useDashboardMetrics(filters);
   const { encounters } = useEncounterStore();
 
-  if (error) {
-    return <MetricError />;
-  }
-
-  const totalEncounters =
-    metrics?.totalEncounters || Object.keys(encounters).length || 0;
-  const activeEncounters = metrics?.activeEncounters || 0;
-  const dailyAverage = metrics?.dailyAverage || 0;
-
-  const isUsingMockData = totalEncounters > 50000;
+  const shouldShowLoading = isQueryLoading || isFilterLoading;
 
   return (
-    <MetricCards
-      totalEncounters={totalEncounters}
-      activeEncounters={activeEncounters}
-      dailyAverage={dailyAverage}
-      isUsingMockData={isUsingMockData}
-      isLoading={isFilterLoading}
-    />
+    <QueryStateHandler
+      error={error}
+      errorTitle="Error loading metrics"
+      errorMessage={error?.message}
+      errorSubtitle="Please check your API connection"
+      showCard={false}
+    >
+      <MetricCards
+        totalEncounters={
+          metrics?.totalEncounters || Object.keys(encounters).length || 0
+        }
+        activeEncounters={metrics?.activeEncounters || 0}
+        dailyAverage={metrics?.dailyAverage || 0}
+        isUsingMockData={
+          (metrics?.totalEncounters || Object.keys(encounters).length || 0) >
+          50000
+        }
+        isLoading={shouldShowLoading}
+      />
+    </QueryStateHandler>
   );
 };
