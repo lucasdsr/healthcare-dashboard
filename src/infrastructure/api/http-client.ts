@@ -10,11 +10,18 @@ export class HttpClient {
     };
   }
 
-  async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+  async get<T>(
+    endpoint: string,
+    params?: Record<string, string | string[] | number>
+  ): Promise<T> {
     const url = new URL(endpoint, this.baseURL);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
+        if (Array.isArray(value)) {
+          value.forEach(v => url.searchParams.append(key, v.toString()));
+        } else {
+          url.searchParams.append(key, value.toString());
+        }
       });
     }
 

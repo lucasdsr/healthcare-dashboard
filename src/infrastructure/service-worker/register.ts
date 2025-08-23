@@ -1,25 +1,22 @@
-export function registerServiceWorker(): void {
-  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+export function register() {
+  if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      const swUrl = '/sw.js';
+      const swUrl = `${process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000'}/sw.js`;
 
       navigator.serviceWorker
         .register(swUrl)
         .then(registration => {
-          console.log('SW registered: ', registration);
-
           registration.onupdatefound = () => {
             const installingWorker = registration.installing;
             if (installingWorker == null) {
               return;
             }
-
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                  console.log('New content is available; please refresh.');
+                  // New content is available; please refresh.
                 } else {
-                  console.log('Content is cached for offline use.');
+                  // Content is cached for offline use.
                 }
               }
             };

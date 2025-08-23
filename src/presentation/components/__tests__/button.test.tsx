@@ -15,14 +15,14 @@ describe('Button', () => {
     render(<Button variant="destructive">Delete</Button>);
 
     const button = screen.getByRole('button', { name: 'Delete' });
-    expect(button).toHaveClass('bg-destructive', 'text-destructive-foreground');
+    expect(button).toHaveClass('bg-red-600', 'text-white');
   });
 
   it('should render button with custom size', () => {
     render(<Button size="lg">Large Button</Button>);
 
     const button = screen.getByRole('button', { name: 'Large Button' });
-    expect(button).toHaveClass('h-11', 'px-8');
+    expect(button).toHaveClass('h-11', 'px-6');
   });
 
   it('should render button with custom className', () => {

@@ -18,16 +18,19 @@ import {
 
 interface EncounterStatusChartProps {
   filters?: any;
+  isFilterLoading?: boolean;
 }
 
 export const EncounterStatusChart: React.FC<EncounterStatusChartProps> = ({
   filters,
+  isFilterLoading = false,
 }) => {
   const { data: metrics, isLoading, error } = useDashboardMetrics(filters);
 
-  if (isLoading) {
+  // Show loading for filter changes, not initial load
+  if (isFilterLoading || isLoading) {
     return (
-      <Card className="bg-white border border-neutral-200 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-neutral-900">
             Status Distribution
@@ -35,7 +38,17 @@ export const EncounterStatusChart: React.FC<EncounterStatusChartProps> = ({
           <p className="text-sm text-neutral-500">Encounters by status</p>
         </CardHeader>
         <CardContent>
-          <div className="h-64 md:h-72 lg:h-80 bg-neutral-100 animate-pulse rounded-lg"></div>
+          <div className="h-64 md:h-72 lg:h-80 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-200 rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="text-blue-700 font-medium text-lg">
+                Loading Status Data...
+              </div>
+              <div className="text-blue-500 text-sm mt-2">
+                Applying filters to encounters
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -43,7 +56,7 @@ export const EncounterStatusChart: React.FC<EncounterStatusChartProps> = ({
 
   if (error) {
     return (
-      <Card className="bg-white border border-neutral-200 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-neutral-900">
             Status Distribution
@@ -68,7 +81,7 @@ export const EncounterStatusChart: React.FC<EncounterStatusChartProps> = ({
 
   if (!hasData) {
     return (
-      <Card className="bg-white border border-neutral-200 shadow-sm">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-neutral-900">
             Status Distribution
@@ -105,7 +118,7 @@ export const EncounterStatusChart: React.FC<EncounterStatusChartProps> = ({
   );
 
   return (
-    <Card className="bg-white border border-neutral-200 shadow-sm">
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-neutral-900">
           Status Distribution

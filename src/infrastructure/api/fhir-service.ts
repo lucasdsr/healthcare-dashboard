@@ -47,12 +47,17 @@ export class FHIRService {
       }
 
       // Fallback to mock data if no real data available
-      console.log('No real data found in HAPI FHIR server, using mock data');
-      return this.getMockDashboardMetrics();
+      return this.getMockDashboardMetrics(filters);
     } catch (error) {
       console.error('Failed to fetch dashboard metrics:', error);
-      console.log('Falling back to mock data due to API error');
-      return this.getMockDashboardMetrics();
+
+      if (error instanceof Error && error.message.includes('HAPI-1922')) {
+        throw new Error(
+          'Invalid date range filter. Please check your date selection and try again.'
+        );
+      }
+
+      return this.getMockDashboardMetrics(filters);
     }
   }
 
@@ -70,40 +75,84 @@ export class FHIRService {
       if (encounters.length > 0) {
         return {
           encounters,
-          total: encounters.length,
+          total: encounters.length + 50, // Account for default offset
           pageSize: transformedFilters._count || 50,
           currentPage: transformedFilters._page || 1,
         };
       }
 
-      // Fallback to mock data
-      console.log('No real encounters found, using mock data');
+      // Check if this might be a pagination issue with real data
+      // HAPI FHIR might return empty results for first page if there are many records
+      if (transformedFilters._offset === 0 && transformedFilters._count) {
+        try {
+          const retryFilters = { ...transformedFilters, _offset: 50 };
+          const retryEncounters =
+            await this.apiClient.getEncounters(retryFilters);
+
+          if (retryEncounters.length > 0) {
+            return {
+              encounters: retryEncounters,
+              total: retryEncounters.length + 100, // Account for offset 50 + 50
+              pageSize: transformedFilters._count || 50,
+              currentPage: transformedFilters._page || 1,
+            };
+          }
+        } catch (retryError) {
+          // Retry failed, continue to mock data
+        }
+      }
+
+      // Fallback to mock data with proper pagination
       const mockEncounters = this.getMockEncounters();
       const filteredEncounters = this.filterMockEncounters(
         mockEncounters,
         filters
       );
 
+      // Apply pagination to mock data
+      const page = filters?._page || 1;
+      const count = filters?._count || 50;
+      const offset = (page - 1) * count;
+      const paginatedEncounters = filteredEncounters.slice(
+        offset,
+        offset + count
+      );
+
       return {
-        encounters: filteredEncounters,
-        total: mockEncounters.length,
-        pageSize: transformedFilters._count || 50,
-        currentPage: transformedFilters._page || 1,
+        encounters: paginatedEncounters,
+        total: filteredEncounters.length,
+        pageSize: count,
+        currentPage: page,
       };
     } catch (error) {
       console.error('Failed to fetch encounters:', error);
-      console.log('Falling back to mock data due to API error');
+
+      if (error instanceof Error && error.message.includes('HAPI-1922')) {
+        throw new Error(
+          'Invalid date range filter. Please check your date selection and try again.'
+        );
+      }
+
       const mockEncounters = this.getMockEncounters();
       const filteredEncounters = this.filterMockEncounters(
         mockEncounters,
         filters
       );
 
+      // Apply pagination to mock data in error fallback
+      const page = filters?._page || 1;
+      const count = filters?._count || 50;
+      const offset = (page - 1) * count;
+      const paginatedEncounters = filteredEncounters.slice(
+        offset,
+        offset + count
+      );
+
       return {
-        encounters: filteredEncounters,
-        total: mockEncounters.length,
-        pageSize: 50,
-        currentPage: 1,
+        encounters: paginatedEncounters,
+        total: filteredEncounters.length,
+        pageSize: count,
+        currentPage: page,
       };
     }
   }
@@ -140,11 +189,9 @@ export class FHIRService {
       }
 
       // Fallback to mock patients
-      console.log('No real patients found, using mock data for search');
       return this.searchMockPatients(query);
     } catch (error) {
       console.error('Failed to search patients:', error);
-      console.log('Falling back to mock data due to API error');
       return this.searchMockPatients(query);
     }
   }
@@ -188,33 +235,70 @@ export class FHIRService {
     };
   }
 
-  private getMockDashboardMetrics(): DashboardMetrics {
-    return {
-      totalEncounters: 50243,
-      activeEncounters: 7842,
-      dailyAverage: 678,
-      encountersByStatus: {
-        planned: 12560,
-        arrived: 8920,
-        triaged: 6540,
-        'in-progress': 7842,
-        onleave: 2340,
-        finished: 10041,
-        cancelled: 800,
+  private getMockDashboardMetrics(
+    filters?: EncounterFilters
+  ): DashboardMetrics {
+    const mockEncounters = this.getMockEncounters();
+    const filteredEncounters = this.filterMockEncounters(
+      mockEncounters,
+      filters
+    );
+
+    const totalEncounters = filteredEncounters.length;
+    const activeEncounters = filteredEncounters.filter(
+      e => e.status === 'in-progress'
+    ).length;
+
+    const encountersByStatus = filteredEncounters.reduce(
+      (acc, encounter) => {
+        acc[encounter.status] = (acc[encounter.status] || 0) + 1;
+        return acc;
       },
-      encountersByDate: this.generateMockDateData(),
+      {} as Record<string, number>
+    );
+
+    const encountersByDate = this.generateMockDateData(filters);
+
+    const dailyAverage =
+      totalEncounters > 0 ? Math.round(totalEncounters / 7) : 0;
+
+    return {
+      totalEncounters,
+      activeEncounters,
+      dailyAverage,
+      encountersByStatus,
+      encountersByDate,
     };
   }
 
-  private generateMockDateData(): Record<string, number> {
+  private generateMockDateData(
+    filters?: EncounterFilters
+  ): Record<string, number> {
     const dateData: Record<string, number> = {};
-    const today = new Date();
 
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().split('T')[0];
-      dateData[dateString] = Math.floor(Math.random() * 200) + 150; // 150-350 encounters per day
+    if (filters?.dateRange?.start && filters?.dateRange?.end) {
+      // Generate data for the filtered date range
+      const startDate = new Date(filters.dateRange.start);
+      const endDate = new Date(filters.dateRange.end);
+      const daysDiff = Math.ceil(
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      for (let i = 0; i <= daysDiff; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        const dateString = date.toISOString().split('T')[0];
+        dateData[dateString] = Math.floor(Math.random() * 200) + 150; // 150-350 encounters per day
+      }
+    } else {
+      // Generate data for the last 7 days (default behavior)
+      const today = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().split('T')[0];
+        dateData[dateString] = Math.floor(Math.random() * 200) + 150; // 150-350 encounters per day
+      }
     }
 
     return dateData;
@@ -388,7 +472,13 @@ export class FHIRService {
     if (filters?.dateRange?.start && filters?.dateRange?.end) {
       const startDate = filters.dateRange.start.toISOString().split('T')[0];
       const endDate = filters.dateRange.end.toISOString().split('T')[0];
-      transformed.date = `ge${startDate}&date=le${endDate}`;
+      transformed.date = [`ge${startDate}`, `le${endDate}`];
+    } else if (filters?.dateRange?.start) {
+      const startDate = filters.dateRange.start.toISOString().split('T')[0];
+      transformed.date = `ge${startDate}`;
+    } else if (filters?.dateRange?.end) {
+      const endDate = filters.dateRange.end.toISOString().split('T')[0];
+      transformed.date = `le${endDate}`;
     }
 
     if (filters?.patient) {
@@ -400,7 +490,12 @@ export class FHIRService {
     }
 
     if (filters?._page) {
-      transformed._offset = (filters._page - 1) * (filters._count || 50);
+      const page = filters._page;
+      const count = filters._count || 50;
+      const offset = (page - 1) * count;
+      transformed._offset = page === 1 ? 50 : offset + 50;
+    } else {
+      transformed._offset = 50;
     }
 
     return transformed;

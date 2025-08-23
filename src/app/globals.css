@@ -84,3 +84,63 @@
     color: hsl(var(--color-foreground));
   }
 }
+
+@layer components {
+  .virtual-list-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
+
+  .virtual-list-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .virtual-list-scrollbar::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+  }
+
+  .virtual-list-scrollbar::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+
+  .virtual-list-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  .healthcare-status-planned {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+
+  .healthcare-status-arrived {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+
+  .healthcare-status-triaged {
+    background-color: #fed7aa;
+    color: #ea580c;
+  }
+
+  .healthcare-status-in-progress {
+    background-color: #dcfce7;
+    color: #16a34a;
+  }
+
+  .healthcare-status-onleave {
+    background-color: #f3e8ff;
+    color: #9333ea;
+  }
+
+  .healthcare-status-finished {
+    background-color: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .healthcare-status-cancelled {
+    background-color: #fee2e2;
+    color: #dc2626;
+  }
+}

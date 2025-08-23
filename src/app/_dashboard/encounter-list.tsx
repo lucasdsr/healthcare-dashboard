@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { FixedSizeList as List } from 'react-window';
 import { useEncounters } from '@/infrastructure/queries/encounter-queries';
 import { Encounter } from '@/domain/entities/encounter';
 import { Status } from '@/domain/value-objects/status';
@@ -14,31 +15,153 @@ import {
 
 interface EncounterListProps {
   filters?: any;
+  isFilterLoading?: boolean;
 }
 
-export function EncounterList({ filters }: EncounterListProps) {
+interface EncounterRowProps {
+  index: number;
+  style: React.CSSProperties;
+  data: {
+    encounters: Encounter[];
+  };
+}
+
+const EncounterRow: React.FC<EncounterRowProps> = React.memo(
+  ({ index, style, data }) => {
+    const encounter = data.encounters[index];
+
+    if (!encounter) {
+      return (
+        <div style={style}>
+          <div className="bg-white border-b border-gray-100 px-6 py-4 hover:bg-gray-50 transition-colors last:border-b-0">
+            <div className="text-center text-gray-500">Loading...</div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={style}>
+        <div className="bg-white border-b border-gray-100 px-6 py-4 hover:bg-gray-50 transition-colors last:border-b-0">
+          <div className="flex justify-between items-center">
+            <div className="flex-1 grid grid-cols-4 gap-6">
+              <div className="flex items-center">
+                <div className="bg-blue-100 text-blue-800 text-xs font-mono px-2 py-1 rounded-md">
+                  #{encounter.id || 'Unknown'}
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="text-sm font-medium text-gray-900 truncate max-w-[200px]">
+                  {encounter.subject?.reference || 'Unknown Patient'}
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="text-sm font-medium text-gray-900 capitalize">
+                  {encounter.status
+                    ? encounter.status.replace('-', ' ')
+                    : 'Unknown'}
+                </div>
+              </div>
+              <div className="flex items-center">
+                <div className="text-sm font-medium text-gray-900">
+                  {encounter.period?.start
+                    ? new Date(encounter.period.start).toLocaleDateString()
+                    : 'N/A'}
+                </div>
+              </div>
+            </div>
+            <div className="ml-6 flex-shrink-0">
+              <span
+                className={`px-3 py-1.5 rounded-full text-xs font-medium healthcare-status-${encounter.status}`}
+              >
+                {encounter.status || 'Unknown'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+EncounterRow.displayName = 'EncounterRow';
+
+export function EncounterList({
+  filters,
+  isFilterLoading = false,
+}: EncounterListProps) {
   const { pagination, setPagination } = useEncounterStore();
+  const [localCurrentPage, setLocalCurrentPage] = useState(1);
 
   const { data, isLoading, error } = useEncounters({
     ...filters,
     _count: pagination.pageSize,
-    _page: pagination.currentPage,
+    _page: localCurrentPage,
   });
 
-  const handlePageChange = (newPage: number) => {
-    setPagination({ currentPage: newPage });
-  };
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setLocalCurrentPage(newPage);
+      setPagination({ currentPage: newPage });
+    },
+    [setPagination, localCurrentPage]
+  );
 
-  if (isLoading) {
+  // Reset local page when filters change
+  React.useEffect(() => {
+    setLocalCurrentPage(1);
+  }, [filters]);
+
+  const encounters = data?.encounters || [];
+  const totalCount = data?.total || 0;
+  const currentPage = localCurrentPage;
+  const pageSize = data?.pageSize || pagination.pageSize;
+
+  const totalPages = useMemo(() => {
+    if (!pageSize || pageSize === 0) return 1;
+    const calculated = Math.ceil(totalCount / pageSize);
+    return Math.max(calculated, 1);
+  }, [totalCount, pageSize]);
+
+  React.useEffect(() => {
+    if (data) {
+      setPagination({
+        currentPage: data.currentPage,
+        totalCount: data.total,
+        totalPages: Math.ceil(data.total / data.pageSize),
+        pageSize: data.pageSize,
+      });
+    }
+  }, [data, setPagination, filters, localCurrentPage]);
+
+  const listHeight = useMemo(() => {
+    const itemHeight = 80;
+    const maxHeight = 600;
+    const calculatedHeight = Math.min(
+      encounters.length * itemHeight,
+      maxHeight
+    );
+    return Math.max(calculatedHeight, 200);
+  }, [encounters.length]);
+
+  if (isLoading || isFilterLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="space-y-3">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-              <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+        <CardHeader>
+          <CardTitle>Encounters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-dashed border-purple-200 rounded-lg p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+              <div className="text-purple-700 font-medium text-lg">
+                Loading Encounters...
+              </div>
+              <div className="text-purple-500 text-sm mt-2">
+                {isFilterLoading
+                  ? 'Applying filters to data...'
+                  : 'Fetching encounter records...'}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -59,13 +182,11 @@ export function EncounterList({ filters }: EncounterListProps) {
     );
   }
 
-  const encounters = data?.encounters || [];
-
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Encounters</CardTitle>
+          <CardTitle>Encounters ({totalCount})</CardTitle>
         </CardHeader>
         <CardContent>
           {encounters.length === 0 ? (
@@ -73,63 +194,68 @@ export function EncounterList({ filters }: EncounterListProps) {
               No encounters found
             </p>
           ) : (
-            <div className="space-y-4">
-              {encounters.map(encounter => (
-                <div
-                  key={encounter.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">Encounter {encounter.id}</h3>
-                      <p className="text-sm text-gray-600">
-                        Status: {encounter.status}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Patient: {encounter.subject.reference}
-                      </p>
-                      {encounter.period?.start && (
-                        <p className="text-sm text-gray-600">
-                          Date:{' '}
-                          {new Date(
-                            encounter.period.start
-                          ).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium healthcare-status-${encounter.status}`}
-                    >
-                      {encounter.status}
-                    </span>
+            <div className="relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 px-6 py-4">
+                <div className="grid grid-cols-4 gap-6">
+                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    ID
+                  </div>
+                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    Patient
+                  </div>
+                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    Status
+                  </div>
+                  <div className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    Date
                   </div>
                 </div>
-              ))}
+              </div>
+              <List
+                height={listHeight}
+                width="100%"
+                itemCount={encounters.length}
+                itemSize={80}
+                itemData={{ encounters }}
+                className="virtual-list-scrollbar"
+                overscanCount={5}
+              >
+                {EncounterRow}
+              </List>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {pagination.totalPages > 1 && (
+      {totalPages > 1 && (
         <Card>
           <CardContent className="p-4">
             <div className="flex justify-between items-center">
               <Button
-                variant="outline"
-                onClick={() => handlePageChange(pagination.currentPage - 1)}
-                disabled={pagination.currentPage <= 1}
+                variant="secondary"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
               >
                 Previous
               </Button>
 
-              <span className="text-sm text-gray-600">
-                Page {pagination.currentPage} of {pagination.totalPages}
-              </span>
+              <div className="text-center">
+                <span className="text-sm text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <div className="text-xs text-gray-500 mt-1">
+                  {totalCount} total encounters
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Debug: localPage={localCurrentPage}, storePage=
+                  {pagination.currentPage}
+                </div>
+              </div>
 
               <Button
-                variant="outline"
-                onClick={() => handlePageChange(pagination.currentPage + 1)}
-                disabled={pagination.currentPage >= pagination.totalPages}
+                variant="secondary"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
               >
                 Next
               </Button>

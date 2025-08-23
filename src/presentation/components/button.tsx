@@ -4,24 +4,29 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/shared/utils/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'cursor-pointer inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-sm hover:shadow-md',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        default: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+        destructive: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
         outline:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+          'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300',
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+          'bg-gray-600 text-white hover:bg-gray-700 active:bg-gray-800',
+        ghost:
+          'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
+        link: 'bg-transparent text-blue-600 underline-offset-4 hover:underline hover:bg-blue-50',
+        success:
+          'bg-green-600 text-success-foreground hover:bg-green-700 active:bg-green-800',
+        warning:
+          'bg-yellow-500 text-white hover:bg-yellow-600 active:bg-yellow-700',
+        info: 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700',
       },
       size: {
         default: 'h-10 px-4 py-2',
-        sm: 'h-9 rounded-md px-3',
-        lg: 'h-11 rounded-md px-8',
+        sm: 'h-9 px-3 py-1.5 text-sm',
+        lg: 'h-11 px-6 py-3 text-base',
         icon: 'h-10 w-10',
       },
     },

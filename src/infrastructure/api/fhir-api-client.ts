@@ -28,7 +28,7 @@ export interface PatientSearchParams {
 export interface EncounterSearchParams {
   patient?: string;
   status?: string;
-  date?: string;
+  date?: string | string[];
   type?: string;
   location?: string;
   serviceprovider?: string;
@@ -125,12 +125,17 @@ export class FHIRApiClientImpl implements FHIRApiClient {
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          searchParams.append(key, value.toString());
+          if (key === 'date' && Array.isArray(value)) {
+            value.forEach(v => searchParams.append('date', v));
+          } else {
+            searchParams.append(key, value.toString());
+          }
         }
       });
     }
 
     const endpoint = `/Encounter${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+
     const response = await this.request<FHIRBundle<Encounter>>(endpoint);
 
     return response.entry?.map(entry => entry.resource) || [];

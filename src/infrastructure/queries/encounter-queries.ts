@@ -29,23 +29,44 @@ export const useDashboardMetrics = (filters?: EncounterFilters) => {
 export const useEncounters = (filters?: EncounterFilters) => {
   const { setEncounters, setPagination } = useEncounterStore();
 
+  const { _page, _count, ...searchFilters } = filters || {};
+  const currentPage = _page || 1;
+  const pageSize = _count || 50;
+
   return useQuery({
-    queryKey: ['encounters', filters],
+    queryKey: ['encounters', searchFilters, currentPage, pageSize],
     queryFn: async () => {
-      const result = await fhirService.getEncounters(filters);
+      try {
+        const result = await fhirService.getEncounters({
+          ...searchFilters,
+          _page: currentPage,
+          _count: pageSize,
+        });
 
-      setEncounters(result.encounters);
-      setPagination({
-        currentPage: result.currentPage,
-        totalCount: result.total,
-        totalPages: Math.ceil(result.total / result.pageSize),
-        pageSize: result.pageSize,
-      });
+        setEncounters(result.encounters);
+        setPagination({
+          currentPage: result.currentPage,
+          totalCount: result.total,
+          totalPages: Math.ceil(result.total / result.pageSize),
+          pageSize: result.pageSize,
+        });
 
-      return result;
+        return result;
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes('Invalid date range filter')
+        ) {
+          throw new Error(
+            'Please check your date range selection and try again.'
+          );
+        }
+
+        throw error;
+      }
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
-    gcTime: 3 * 60 * 1000, // 3 minutes
+    staleTime: 1 * 60 * 1000,
+    gcTime: 3 * 60 * 1000,
   });
 };
 

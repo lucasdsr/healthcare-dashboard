@@ -16,6 +16,7 @@ interface MetricCardProps {
   };
   icon?: React.ReactNode;
   className?: string;
+  isLoading?: boolean;
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -24,30 +25,51 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   change,
   icon,
   className,
+  isLoading = false,
 }) => (
-  <Card className={cn('hover:shadow-md transition-shadow', className)}>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-neutral-600">
+  <Card
+    className={cn(
+      'hover:shadow-lg transition-all duration-200 hover:-translate-y-1',
+      className
+    )}
+  >
+    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+      <CardTitle className="text-sm font-semibold text-gray-700">
         {title}
       </CardTitle>
       {icon && (
-        <div className="h-5 w-5 text-neutral-400 flex-shrink-0">{icon}</div>
+        <div className="h-6 w-6 text-gray-500 flex-shrink-0 bg-gray-100 p-1 rounded-lg">
+          {icon}
+        </div>
       )}
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold text-neutral-900 mb-1">{value}</div>
-      {change && (
-        <p
-          className={cn(
-            'text-xs',
-            change.isPositive
-              ? 'text-healthcare-success-600'
-              : 'text-healthcare-danger-600'
+      {isLoading ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="h-4 bg-gradient-to-r from-blue-200 to-blue-300 rounded w-24 animate-pulse"></div>
+            <div className="h-6 w-6 bg-gradient-to-r from-blue-200 to-blue-300 rounded-lg animate-pulse"></div>
+          </div>
+          <div className="space-y-2">
+            <div className="h-8 bg-gradient-to-r from-blue-200 to-blue-300 rounded w-20 animate-pulse"></div>
+            <div className="h-4 bg-gradient-to-r from-blue-200 to-blue-300 rounded w-32 animate-pulse"></div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="text-3xl font-bold text-gray-900 mb-2">{value}</div>
+          {change && (
+            <p
+              className={cn(
+                'text-xs font-medium',
+                change.isPositive ? 'text-green-600' : 'text-red-600'
+              )}
+            >
+              {change.isPositive ? '+' : ''}
+              {change.value}% from last month
+            </p>
           )}
-        >
-          {change.isPositive ? '+' : ''}
-          {change.value}% from last month
-        </p>
+        </>
       )}
     </CardContent>
   </Card>

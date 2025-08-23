@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { EncounterList } from './encounter-list';
 import { FilterBar } from './filters/filter-bar';
 import {
@@ -48,6 +48,16 @@ const transformFiltersToFHIR = (filters: DashboardFilters) => {
 export const DashboardLayout: React.FC = () => {
   const [filters, setFilters] = useState<DashboardFilters>({});
   const [showInfo, setShowInfo] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+
+  useEffect(() => {
+    // Simulate initial load completion
+    const timer = setTimeout(() => {
+      setIsInitialLoad(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleFiltersChange = useCallback((newFilters: DashboardFilters) => {
     setFilters(newFilters);
@@ -57,10 +67,29 @@ export const DashboardLayout: React.FC = () => {
     setFilters({});
   }, []);
 
+  const handleFilterLoading = useCallback((loading: boolean) => {
+    setIsFilterLoading(loading);
+  }, []);
+
   const fhirFilters = transformFiltersToFHIR(filters);
 
+  // Show global loading only on initial load
+  if (isInitialLoad) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="text-xl font-semibold text-gray-700">
+            Loading Dashboard...
+          </div>
+          <div className="text-gray-500 mt-2">Initializing healthcare data</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -125,30 +154,30 @@ export const DashboardLayout: React.FC = () => {
         <FilterBar
           filters={filters}
           onFiltersChange={handleFiltersChange}
-          onClearFilters={handleClearFilters}
+          onLoadingChange={handleFilterLoading}
         />
 
-        {/* Debug Info */}
-        {Object.keys(filters).length > 0 && (
-          <Card className="mb-4 bg-blue-50 border-blue-200">
-            <CardContent className="p-3">
-              <div className="text-sm text-blue-800">
-                🔍 <strong>Filters Active:</strong>{' '}
-                {JSON.stringify(fhirFilters)}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         <div className="space-y-8">
-          <MetricsDashboard filters={fhirFilters} />
+          <MetricsDashboard
+            filters={fhirFilters}
+            isFilterLoading={isFilterLoading}
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <EncounterStatusChart filters={fhirFilters} />
-            <EncounterTrendsChart filters={fhirFilters} />
+            <EncounterStatusChart
+              filters={fhirFilters}
+              isFilterLoading={isFilterLoading}
+            />
+            <EncounterTrendsChart
+              filters={fhirFilters}
+              isFilterLoading={isFilterLoading}
+            />
           </div>
 
-          <EncounterList filters={fhirFilters} />
+          <EncounterList
+            filters={fhirFilters}
+            isFilterLoading={isFilterLoading}
+          />
         </div>
       </div>
     </div>

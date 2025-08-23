@@ -11,6 +11,7 @@ interface MetricCardsProps {
   activeEncounters: number;
   dailyAverage: number;
   isUsingMockData: boolean;
+  isLoading?: boolean;
 }
 
 export const MetricCards: React.FC<MetricCardsProps> = ({
@@ -18,33 +19,37 @@ export const MetricCards: React.FC<MetricCardsProps> = ({
   activeEncounters,
   dailyAverage,
   isUsingMockData,
+  isLoading = false,
 }) => (
-  <div className="space-y-4">
+  <div className="space-y-6">
     {isUsingMockData && (
       <div className="flex items-center justify-center">
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+        <div className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200 shadow-sm">
           📊 Demo Mode - Using Sample Data
         </div>
       </div>
     )}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <MetricCard
         title="Total Encounters"
         value={totalEncounters.toLocaleString()}
-        icon={<UserGroupIcon className="h-5 w-5" />}
+        icon={<UserGroupIcon className="h-6 w-6" />}
         change={{ value: 12, isPositive: true }}
+        isLoading={isLoading}
       />
       <MetricCard
         title="Active Encounters"
         value={activeEncounters.toLocaleString()}
-        icon={<ClockIcon className="h-5 w-5" />}
+        icon={<ClockIcon className="h-6 w-6" />}
         change={{ value: 5, isPositive: true }}
+        isLoading={isLoading}
       />
       <MetricCard
         title="Daily Average"
         value={dailyAverage.toLocaleString()}
-        icon={<ChartBarIcon className="h-5 w-5" />}
+        icon={<ChartBarIcon className="h-6 w-6" />}
         change={{ value: 8, isPositive: true }}
+        isLoading={isLoading}
       />
     </div>
   </div>

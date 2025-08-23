@@ -29,6 +29,7 @@ export default [
       'no-unused-vars': 'off',
       'default-param-last': 'warn',
       'arrow-body-style': ['error', 'as-needed'],
+      'no-console': ['error', { allow: ['error', 'warn'] }],
 
       'react/react-in-jsx-scope': 'off',
       'react/jsx-uses-react': 'off',

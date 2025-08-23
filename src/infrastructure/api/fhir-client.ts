@@ -121,7 +121,7 @@ export class FhirClient {
     _count?: number;
     _page?: number;
     status?: string;
-    date?: string;
+    date?: string | string[];
     patient?: string;
   }): Promise<Bundle<Encounter>> {
     const queryParams = new URLSearchParams();
@@ -129,7 +129,13 @@ export class FhirClient {
     if (params._count) queryParams.append('_count', params._count.toString());
     if (params._page) queryParams.append('_page', params._page.toString());
     if (params.status) queryParams.append('status', params.status);
-    if (params.date) queryParams.append('date', params.date);
+    if (params.date) {
+      if (Array.isArray(params.date)) {
+        params.date.forEach(d => queryParams.append('date', d));
+      } else {
+        queryParams.append('date', params.date);
+      }
+    }
     if (params.patient) queryParams.append('patient', params.patient);
 
     return this.httpClient.get<Bundle<Encounter>>(`/Encounter?${queryParams}`);

@@ -73,43 +73,19 @@ export const DateInput: React.FC<DateInputProps> = ({
   }, []);
 
   const formatDateForInput = (date: Date): string => {
-    if (!date) return '';
-
     try {
-      if (format === 'datetime-local') {
-        // Format for datetime-local input (YYYY-MM-DDTHH:mm)
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
-      } else {
-        // Format for date input (YYYY-MM-DD)
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
+      return date.toISOString().split('T')[0];
     } catch (error) {
-      console.error('Error formatting date:', error);
       return '';
     }
   };
 
-  const parseInputValue = (inputValue: string): Date | undefined => {
-    if (!inputValue) return undefined;
-
+  const parseDateFromInput = (dateString: string): Date | null => {
     try {
-      const date = new Date(inputValue);
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return undefined;
-      }
-      return date;
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? null : date;
     } catch (error) {
-      console.error('Error parsing date:', error);
-      return undefined;
+      return null;
     }
   };
 
@@ -118,16 +94,16 @@ export const DateInput: React.FC<DateInputProps> = ({
     setInputValue(newValue);
 
     // Only update parent if we have a valid date
-    const parsedDate = parseInputValue(newValue);
+    const parsedDate = parseDateFromInput(newValue);
     if (parsedDate || newValue === '') {
-      onChange(parsedDate);
+      onChange(parsedDate || undefined);
     }
   };
 
   const handleInputBlur = () => {
     // Validate and format on blur
     if (inputValue) {
-      const parsedDate = parseInputValue(inputValue);
+      const parsedDate = parseDateFromInput(inputValue);
       if (parsedDate) {
         setInputValue(formatDateForInput(parsedDate));
       } else {
@@ -149,7 +125,7 @@ export const DateInput: React.FC<DateInputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -161,15 +137,16 @@ export const DateInput: React.FC<DateInputProps> = ({
             ref={inputRef}
             type={format}
             className={cn(
-              'w-full border rounded-md transition-colors',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+              'w-full border rounded-lg transition-all duration-200',
+              'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+              'hover:border-gray-400 hover:shadow-sm',
               sizeClasses[size],
               {
                 'border-red-300 focus:border-red-500 focus:ring-red-500':
                   isError,
-                'border-neutral-300': !isError,
-                'bg-neutral-100 cursor-not-allowed': disabled,
-                'bg-white hover:border-neutral-400': !disabled,
+                'border-gray-300': !isError,
+                'bg-gray-100 cursor-not-allowed': disabled,
+                'bg-white': !disabled,
                 'pr-10': clearable && hasValue,
                 'pr-3': !clearable || !hasValue,
               },
@@ -207,7 +184,7 @@ export const DateInput: React.FC<DateInputProps> = ({
         )}
       </div>
 
-      {helpText && <p className="mt-1 text-sm text-neutral-500">{helpText}</p>}
+      {helpText && <p className="mt-2 text-xs text-gray-500">{helpText}</p>}
 
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>

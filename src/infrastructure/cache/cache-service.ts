@@ -130,8 +130,7 @@ export class LocalStorageCacheService implements CacheService {
 
       localStorage.setItem(fullKey, JSON.stringify(entry));
     } catch (error) {
-      // Local storage might be full or disabled
-      console.warn('Failed to cache item:', error);
+      // Failed to cache item
     }
   }
 

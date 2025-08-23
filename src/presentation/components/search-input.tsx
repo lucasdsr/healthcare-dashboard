@@ -60,7 +60,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
           type="text"
           placeholder={placeholder}
           className={cn(
-            'w-full pl-10 pr-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
+            'w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 hover:shadow-sm',
             className
           )}
           value={value}
@@ -71,20 +71,22 @@ export const SearchInput: React.FC<SearchInputProps> = ({
       </div>
 
       {shouldShowResults && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
           {isLoading ? (
-            <div className="p-3 text-center text-gray-500">Searching...</div>
+            <div className="p-4 text-center text-gray-500">Searching...</div>
           ) : results.length > 0 ? (
             <div>
               {results.map(result => (
                 <div
                   key={result.id}
-                  className="p-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0"
+                  className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
                   onClick={() => handleResultClick(result)}
                 >
-                  <div className="font-medium">{result.label}</div>
+                  <div className="font-medium text-gray-900">
+                    {result.label}
+                  </div>
                   {result.subtitle && (
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-gray-600 mt-1">
                       {result.subtitle}
                     </div>
                   )}
@@ -92,7 +94,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
               ))}
             </div>
           ) : value.length > 2 ? (
-            <div className="p-3 text-center text-gray-500">
+            <div className="p-4 text-center text-gray-500">
               No results found
             </div>
           ) : null}

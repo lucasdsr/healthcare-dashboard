@@ -147,6 +147,7 @@ export const useEncounterStore = create<EncounterState>()(
           patients: state.patients,
           practitioners: state.practitioners,
           organizations: state.organizations,
+          pagination: state.pagination,
         }),
       }
     )
