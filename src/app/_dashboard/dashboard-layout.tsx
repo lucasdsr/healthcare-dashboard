@@ -65,18 +65,15 @@ export const DashboardLayout: React.FC = () => {
   const [isFirstRender, setIsFirstRender] = useState(true);
 
   useEffect(() => {
-    // Simulate initial load completion
     const timer = setTimeout(() => {
       setIsInitialLoad(false);
 
-      // Add a small loading state for default filters on first render
       if (isFirstRender) {
         setIsFilterLoading(true);
-        const filterTimer = setTimeout(() => {
+        setTimeout(() => {
           setIsFilterLoading(false);
           setIsFirstRender(false);
         }, 500);
-        return () => clearTimeout(filterTimer);
       }
     }, 1000);
     return () => clearTimeout(timer);
@@ -84,13 +81,6 @@ export const DashboardLayout: React.FC = () => {
 
   const handleFiltersChange = useCallback((newFilters: DashboardFilters) => {
     setFilters(newFilters);
-  }, []);
-
-  const handleClearFilters = useCallback(() => {
-    // Reset to default date range (first day of current month to today)
-    setFilters({
-      dateRange: getDefaultDateRange(),
-    });
   }, []);
 
   const handleFilterLoading = useCallback((loading: boolean) => {
