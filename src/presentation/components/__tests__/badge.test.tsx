@@ -34,7 +34,12 @@ describe('Badge', () => {
   });
 
   it('renders removable badge when removable prop is true', () => {
-    render(<Badge removable>Removable</Badge>);
+    const handleRemove = jest.fn();
+    render(
+      <Badge removable onRemove={handleRemove}>
+        Removable
+      </Badge>
+    );
     expect(screen.getByRole('button')).toBeInTheDocument();
   });
 

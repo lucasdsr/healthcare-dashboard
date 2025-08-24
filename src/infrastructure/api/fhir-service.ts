@@ -12,13 +12,11 @@ export interface DashboardMetrics {
   encountersByDate: Record<string, number>;
 }
 
-export interface EncounterFilters {
-  status?: string;
+import { EncounterFilters as SharedEncounterFilters } from '@/shared/types/filters';
+
+// Local interface that's compatible with both shared types and internal usage
+export interface EncounterFilters extends SharedEncounterFilters {
   dateRange?: { start: Date; end: Date };
-  patient?: string;
-  practitioner?: string;
-  _count?: number;
-  _page?: number;
 }
 
 export class FHIRService {
@@ -361,13 +359,11 @@ export class FHIRService {
     }
 
     if (filters?.dateRange?.start && filters?.dateRange?.end) {
+      const { start, end } = filters.dateRange;
       filtered = filtered.filter(e => {
         if (!e.period?.start) return false;
         const encounterDate = new Date(e.period.start);
-        return (
-          encounterDate >= filters.dateRange!.start &&
-          encounterDate <= filters.dateRange!.end
-        );
+        return encounterDate >= start && encounterDate <= end;
       });
     }
 

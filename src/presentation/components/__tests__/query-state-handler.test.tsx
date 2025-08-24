@@ -28,7 +28,7 @@ describe('QueryStateHandler', () => {
   it('renders error state when error is provided', () => {
     const error = new Error('Test error');
     render(
-      <QueryStateHandler error={error}>
+      <QueryStateHandler error={error} errorMessage={error.message}>
         <div>Content</div>
       </QueryStateHandler>
     );
@@ -108,6 +108,7 @@ describe('QueryStateHandlerWithHeader', () => {
         title="Test Title"
         subtitle="Test Subtitle"
         error={error}
+        errorMessage={error.message}
       >
         <div>Content</div>
       </QueryStateHandlerWithHeader>

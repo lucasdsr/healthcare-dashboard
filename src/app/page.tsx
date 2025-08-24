@@ -1,7 +1,5 @@
-'use client';
+import { DashboardLayout } from '@/presentation/pages/dashboard';
 
-import { DashboardLayout } from '@/app/_dashboard';
-
-export default function Home() {
+export default function HomePage() {
   return <DashboardLayout />;
 }

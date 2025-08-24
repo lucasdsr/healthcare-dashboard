@@ -19,9 +19,10 @@ describe('Card Components', () => {
       expect(card).toHaveClass(
         'rounded-lg',
         'border',
-        'bg-card',
+        'border-gray-200',
+        'bg-white',
         'text-card-foreground',
-        'shadow-sm'
+        'shadow-md'
       );
     });
 

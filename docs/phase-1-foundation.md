@@ -9,29 +9,60 @@
 
 ## 📁 Estrutura de Pastas
 
+### 🏗️ Arquitetura Clean Architecture + Next.js
+
 ```
 src/
-├── app/                    # Next.js App Router
-├── domain/                 # Entidades e regras de negócio
+├── app/                    # 🚀 Next.js App Router (Obrigatório)
+│   ├── page.tsx           # Página principal (rota /)
+│   ├── layout.tsx         # Layout raiz da aplicação
+│   ├── globals.css        # Estilos globais
+│   └── favicon.ico        # Favicon da aplicação
+├── domain/                 # 🎯 Entidades e regras de negócio
 │   ├── entities/          # Entidades FHIR (Patient, Encounter, etc.)
 │   ├── value-objects/     # Objetos de valor (DateRange, Status, etc.)
 │   └── repositories/      # Interfaces dos repositórios
-├── application/            # Casos de uso e serviços
+├── application/            # ⚙️ Casos de uso e serviços
 │   ├── use-cases/         # Lógica de negócio
 │   ├── services/          # Serviços de aplicação
 │   └── dto/               # Data Transfer Objects
-├── infrastructure/         # Implementações externas
+├── infrastructure/         # 🔌 Implementações externas
 │   ├── api/               # Cliente HTTP e APIs FHIR
 │   ├── cache/             # Sistema de cache
-│   └── storage/           # Persistência local
-├── presentation/           # Componentes e páginas
+│   ├── storage/           # Persistência local
+│   ├── providers/         # Provedores (React Query, etc.)
+│   ├── queries/           # Queries e mutations
+│   ├── service-worker/    # Service Worker
+│   └── store/             # Estado global (Zustand)
+├── presentation/           # 🎨 Componentes e páginas
 │   ├── components/        # Componentes reutilizáveis
-│   ├── pages/             # Páginas da aplicação
+│   ├── pages/             # Páginas da aplicação (reutilizáveis)
 │   └── hooks/             # Custom hooks
-└── shared/                 # Utilitários compartilhados
+└── shared/                 # 🔧 Utilitários compartilhados
     ├── types/             # Tipos TypeScript
     ├── utils/             # Funções utilitárias
-    └── constants/         # Constantes da aplicação
+    ├── constants/         # Constantes da aplicação
+    └── config/            # Configurações
+```
+
+### 🔄 Integração Next.js + Clean Architecture
+
+**Pasta `src/app/`:**
+
+- **Obrigatória** para o Next.js App Router funcionar
+- Contém apenas arquivos essenciais do Next.js
+- **NÃO** contém lógica de negócio ou componentes
+
+**Pasta `src/presentation/pages/`:**
+
+- Contém componentes de página reutilizáveis
+- Importados pelas rotas do `src/app/`
+- Segue a arquitetura Clean Architecture
+
+**Fluxo de Integração:**
+
+```
+src/app/page.tsx → importa → src/presentation/pages/ → usa → src/domain/entities/
 ```
 
 ## 🛠️ Configurações Iniciais
@@ -235,14 +266,20 @@ module.exports = {
 // jest.config.js
 module.exports = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/setup.ts'],
   moduleNameMapping: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@/domain/(.*)$': '<rootDir>/src/domain/$1',
+    '^@/application/(.*)$': '<rootDir>/src/application/$1',
+    '^@/infrastructure/(.*)$': '<rootDir>/src/infrastructure/$1',
+    '^@/presentation/(.*)$': '<rootDir>/src/presentation/$1',
+    '^@/shared/(.*)$': '<rootDir>/src/shared/$1',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/test/**/*',
+    '!src/**/index.ts',
+    '!src/app/**/*',
   ],
 };
 ```
@@ -250,20 +287,41 @@ module.exports = {
 ### Testes de Entidades
 
 ```typescript
-// src/domain/entities/__tests__/patient.test.ts
-import { Patient } from '../patient';
+// src/domain/entities/__tests__/encounter.test.ts
+import { Encounter } from '../encounter';
 
-describe('Patient Entity', () => {
-  it('should create a valid patient', () => {
-    const patient: Patient = {
-      id: 'patient-1',
-      resourceType: 'Patient',
-      name: [{ text: 'John Doe' }],
-      gender: 'male',
+describe('Encounter Entity', () => {
+  it('should create a valid encounter', () => {
+    const encounter: Encounter = {
+      id: 'encounter-1',
+      resourceType: 'Encounter',
+      status: 'in-progress',
+      class: {
+        code: 'AMB',
+        system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode',
+      },
+      subject: { reference: 'Patient/patient-1' },
     };
 
-    expect(patient.resourceType).toBe('Patient');
-    expect(patient.id).toBe('patient-1');
+    expect(encounter.resourceType).toBe('Encounter');
+    expect(encounter.status).toBe('in-progress');
+  });
+});
+```
+
+### Testes de Value Objects
+
+```typescript
+// src/domain/value-objects/__tests__/date-range.test.ts
+import { DateRange } from '../date-range';
+
+describe('DateRange Value Object', () => {
+  it('should create a valid date range', () => {
+    const start = new Date('2024-01-01');
+    const end = new Date('2024-01-31');
+    const dateRange = new DateRange(start, end);
+
+    expect(dateRange.getDays()).toBe(30);
   });
 });
 ```
@@ -285,7 +343,8 @@ describe('Patient Entity', () => {
 
 ## ✅ Checklist de Entrega
 
-- [ ] Estrutura de pastas implementada
+- [ ] Estrutura de pastas implementada (Clean Architecture)
+- [ ] Integração Next.js App Router configurada
 - [ ] Configuração TypeScript com strict mode
 - [ ] Sistema de tipos FHIR implementado
 - [ ] Value Objects criados
@@ -295,16 +354,82 @@ describe('Patient Entity', () => {
 - [ ] Documentação de arquitetura
 - [ ] Testes de base passando
 - [ ] Build funcionando sem erros
+- [ ] Pasta `src/app/` preservada para Next.js
+- [ ] Pasta `src/presentation/pages/` implementada
 
 ## 🚀 Próximos Passos
 
 Após completar esta fase, você terá:
 
-1. Base arquitetural sólida e escalável
-2. Sistema de tipos robusto para dados FHIR
-3. Ambiente de desenvolvimento profissional
-4. Estrutura para implementar funcionalidades complexas
+1. **Base arquitetural sólida e escalável** com Clean Architecture
+2. **Integração perfeita** entre Next.js e Clean Architecture
+3. **Sistema de tipos robusto** para dados FHIR
+4. **Ambiente de desenvolvimento profissional** com testes
+5. **Estrutura para implementar funcionalidades complexas**
+6. **Separação clara** entre lógica de negócio e apresentação
+
+### 🎯 Benefícios da Arquitetura Híbrida
+
+- **Next.js App Router**: Funcionalidade completa e otimizada
+- **Clean Architecture**: Código organizado e testável
+- **Separação de responsabilidades**: Fácil manutenção e evolução
+- **Testabilidade**: Componentes isolados e testáveis
+- **Escalabilidade**: Estrutura preparada para crescimento
 
 **Tempo estimado**: 2-3 dias
 **Complexidade**: Baixa-Média
-**Dependências**: Nenhuma
+**Dependências**: Next.js 14+
+
+## 🔧 Como Usar a Arquitetura Híbrida
+
+### 📝 Criando uma Nova Página
+
+1. **Criar componente em `src/presentation/pages/`:**
+
+```typescript
+// src/presentation/pages/example/index.tsx
+export const ExamplePage = () => {
+  // Lógica da página
+};
+```
+
+2. **Importar no App Router:**
+
+```typescript
+// src/app/example/page.tsx
+import { ExamplePage } from '@/presentation/pages/example';
+
+export default function Page() {
+  return <ExamplePage />;
+}
+```
+
+### 🎯 Criando um Novo Caso de Uso
+
+1. **Implementar em `src/application/use-cases/`:**
+
+```typescript
+// src/application/use-cases/example-use-case.ts
+export class ExampleUseCase {
+  execute() {
+    // Lógica de negócio
+  }
+}
+```
+
+2. **Usar no componente:**
+
+```typescript
+import { ExampleUseCase } from '@/application/use-cases/example-use-case';
+
+const useCase = new ExampleUseCase();
+```
+
+### 🏗️ Princípios da Arquitetura
+
+- **Domain**: Contém apenas regras de negócio puras
+- **Application**: Orquestra casos de uso e serviços
+- **Infrastructure**: Implementa interfaces externas
+- **Presentation**: Renderiza UI e gerencia estado local
+- **Shared**: Utilitários e tipos compartilhados
+- **App Router**: Apenas roteamento e configuração Next.js

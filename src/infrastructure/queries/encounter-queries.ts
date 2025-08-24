@@ -1,10 +1,25 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   fhirService,
-  DashboardMetrics,
-  EncounterFilters,
+  EncounterFilters as FHIREncounterFilters,
 } from '../api/fhir-service';
+import { EncounterFilters } from '@/shared/types/filters';
 import { useEncounterStore } from '../store/encounter-store';
+
+// Transform shared EncounterFilters to FHIR service format
+const transformFilters = (
+  filters?: EncounterFilters
+): FHIREncounterFilters | undefined => {
+  if (!filters) return undefined;
+
+  return {
+    ...filters,
+    dateRange:
+      filters.dateRange?.start && filters.dateRange?.end
+        ? { start: filters.dateRange.start, end: filters.dateRange.end }
+        : undefined,
+  };
+};
 
 export const useDashboardMetrics = (filters?: EncounterFilters) => {
   const { setEncounters } = useEncounterStore();
@@ -12,10 +27,12 @@ export const useDashboardMetrics = (filters?: EncounterFilters) => {
   return useQuery({
     queryKey: ['dashboard-metrics', filters],
     queryFn: async () => {
-      const metrics = await fhirService.getDashboardMetrics(filters);
+      const transformedFilters = transformFilters(filters);
+      const metrics = await fhirService.getDashboardMetrics(transformedFilters);
 
       if (filters) {
-        const encountersData = await fhirService.getEncounters(filters);
+        const encountersData =
+          await fhirService.getEncounters(transformedFilters);
         setEncounters(encountersData.encounters);
       }
 
@@ -38,11 +55,12 @@ export const useEncounters = (filters?: EncounterFilters) => {
     queryKey: ['encounters', searchFilters, currentPage, pageSize],
     queryFn: async () => {
       try {
-        const result = await fhirService.getEncounters({
+        const transformedFilters = transformFilters({
           ...searchFilters,
           _page: currentPage,
           _count: pageSize,
         });
+        const result = await fhirService.getEncounters(transformedFilters);
 
         setEncounters(result.encounters);
         setPagination({
@@ -77,11 +95,12 @@ export const useInfiniteEncounters = (filters?: EncounterFilters) => {
   return useInfiniteQuery({
     queryKey: ['encounters', 'infinite', filters],
     queryFn: async ({ pageParam = 1 }) => {
-      const result = await fhirService.getEncounters({
+      const transformedFilters = transformFilters({
         ...filters,
         _page: pageParam as number,
         _count: filters?._count || 50,
       });
+      const result = await fhirService.getEncounters(transformedFilters);
 
       setEncounters(result.encounters);
       return result;
