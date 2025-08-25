@@ -2,6 +2,7 @@ export * from './badge';
 export * from './button';
 export * from './card';
 export * from './date-input';
+export * from './demo-mode-toggle';
 export * from './loading-spinner';
 export * from './query-state-handler';
 export * from './search-input';

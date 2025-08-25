@@ -41,6 +41,7 @@ export const MetricsDashboard: React.FC<MetricsDashboardProps> = ({
         activeEncounters={metricsLogic.activeEncounters}
         dailyAverage={metricsLogic.dailyAverage}
         isUsingMockData={metricsLogic.isUsingMockData}
+        shouldShowDemoModeIndicator={metricsLogic.shouldShowDemoModeIndicator}
         isLoading={metricsLogic.shouldShowLoading}
       />
     </QueryStateHandler>

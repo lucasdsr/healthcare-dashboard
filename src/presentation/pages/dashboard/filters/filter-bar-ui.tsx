@@ -146,12 +146,12 @@ export const FilterBarUI: React.FC<FilterBarUIProps> = ({
                 </Badge>
               )}
               {filters.patient && (
-                <Badge variant="info" size="sm">
+                <Badge variant="success" size="sm">
                   Patient: {patientSearchQuery || filters.patient}
                 </Badge>
               )}
               {filters.practitioner && (
-                <Badge variant="warning" size="sm">
+                <Badge variant="success" size="sm">
                   Practitioner: {filters.practitioner}
                 </Badge>
               )}

@@ -14,7 +14,6 @@ export interface DashboardMetrics {
 
 import { EncounterFilters as SharedEncounterFilters } from '@/shared/types/filters';
 
-// Local interface that's compatible with both shared types and internal usage
 export interface EncounterFilters extends SharedEncounterFilters {
   dateRange?: { start: Date; end: Date };
 }
@@ -29,22 +28,28 @@ export class FHIRService {
     );
   }
 
+  private shouldUseMockData(): boolean {
+    return false;
+  }
+
   async getDashboardMetrics(
-    filters?: EncounterFilters
+    filters?: EncounterFilters,
+    forceMockData: boolean = false
   ): Promise<DashboardMetrics> {
+    if (forceMockData) {
+      return this.getMockDashboardMetrics(filters);
+    }
+
     try {
-      // Try to get real data from HAPI FHIR
       const encounters = await this.apiClient.getEncounters({
         _count: 1000,
         ...this.transformFilters(filters),
       });
 
-      // If we have real data, use it
       if (encounters.length > 0) {
         return this.calculateMetricsFromRealData(encounters);
       }
 
-      // Fallback to mock data if no real data available
       return this.getMockDashboardMetrics(filters);
     } catch (error) {
       console.error('Failed to fetch dashboard metrics:', error);
@@ -59,28 +64,54 @@ export class FHIRService {
     }
   }
 
-  async getEncounters(filters?: EncounterFilters): Promise<{
+  async getEncounters(
+    filters?: EncounterFilters,
+    forceMockData: boolean = false
+  ): Promise<{
     encounters: Encounter[];
     total: number;
     pageSize: number;
     currentPage: number;
   }> {
+    if (forceMockData) {
+      const mockEncounters = this.getMockEncounters();
+      const filteredEncounters = this.filterMockEncounters(
+        mockEncounters,
+        filters
+      );
+
+      const page = filters?._page || 1;
+      const count = filters?._count || 50;
+      const offset = (page - 1) * count;
+      const paginatedEncounters = filteredEncounters.slice(
+        offset,
+        offset + count
+      );
+
+      return {
+        encounters: paginatedEncounters,
+        total: filteredEncounters.length,
+        pageSize: count,
+        currentPage: page,
+      };
+    }
+
     try {
       const transformedFilters = this.transformFilters(filters);
       const encounters = await this.apiClient.getEncounters(transformedFilters);
 
-      // If we have real data, use it
       if (encounters.length > 0) {
+        const estimatedTotal =
+          encounters.length + (transformedFilters._offset || 0);
+
         return {
           encounters,
-          total: encounters.length + 50, // Account for default offset
+          total: estimatedTotal,
           pageSize: transformedFilters._count || 50,
           currentPage: transformedFilters._page || 1,
         };
       }
 
-      // Check if this might be a pagination issue with real data
-      // HAPI FHIR might return empty results for first page if there are many records
       if (transformedFilters._offset === 0 && transformedFilters._count) {
         try {
           const retryFilters = { ...transformedFilters, _offset: 50 };
@@ -90,24 +121,21 @@ export class FHIRService {
           if (retryEncounters.length > 0) {
             return {
               encounters: retryEncounters,
-              total: retryEncounters.length + 100, // Account for offset 50 + 50
+              total:
+                retryEncounters.length + (transformedFilters._offset || 50),
               pageSize: transformedFilters._count || 50,
               currentPage: transformedFilters._page || 1,
             };
           }
-        } catch (retryError) {
-          // Retry failed, continue to mock data
-        }
+        } catch (retryError) {}
       }
 
-      // Fallback to mock data with proper pagination
       const mockEncounters = this.getMockEncounters();
       const filteredEncounters = this.filterMockEncounters(
         mockEncounters,
         filters
       );
 
-      // Apply pagination to mock data
       const page = filters?._page || 1;
       const count = filters?._count || 50;
       const offset = (page - 1) * count;
@@ -137,7 +165,6 @@ export class FHIRService {
         filters
       );
 
-      // Apply pagination to mock data in error fallback
       const page = filters?._page || 1;
       const count = filters?._count || 50;
       const offset = (page - 1) * count;
@@ -155,27 +182,46 @@ export class FHIRService {
     }
   }
 
-  async getEncounter(id: string): Promise<Encounter> {
+  async getEncounter(
+    id: string,
+    forceMockData: boolean = false
+  ): Promise<Encounter> {
+    if (forceMockData) {
+      return this.getMockEncounter(id);
+    }
+
     try {
       return await this.apiClient.getEncounter(id);
     } catch (error) {
       console.error(`Failed to fetch encounter ${id}:`, error);
-      // Return mock encounter as fallback
       return this.getMockEncounter(id);
     }
   }
 
-  async getPatient(id: string): Promise<Patient> {
+  async getPatient(
+    id: string,
+    forceMockData: boolean = false
+  ): Promise<Patient> {
+    if (forceMockData) {
+      return this.getMockPatient(id);
+    }
+
     try {
       return await this.apiClient.getPatient(id);
     } catch (error) {
       console.error(`Failed to fetch patient ${id}:`, error);
-      // Return mock patient as fallback
       return this.getMockPatient(id);
     }
   }
 
-  async searchPatients(query: string): Promise<Patient[]> {
+  async searchPatients(
+    query: string,
+    forceMockData: boolean = false
+  ): Promise<Patient[]> {
+    if (forceMockData) {
+      return this.searchMockPatients(query);
+    }
+
     try {
       const patients = await this.apiClient.getPatients({
         name: query,
@@ -186,7 +232,6 @@ export class FHIRService {
         return patients;
       }
 
-      // Fallback to mock patients
       return this.searchMockPatients(query);
     } catch (error) {
       console.error('Failed to search patients:', error);
@@ -275,7 +320,6 @@ export class FHIRService {
     const dateData: Record<string, number> = {};
 
     if (filters?.dateRange?.start && filters?.dateRange?.end) {
-      // Generate data for the filtered date range
       const startDate = new Date(filters.dateRange.start);
       const endDate = new Date(filters.dateRange.end);
       const daysDiff = Math.ceil(
@@ -286,16 +330,15 @@ export class FHIRService {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
         const dateString = date.toISOString().split('T')[0];
-        dateData[dateString] = Math.floor(Math.random() * 200) + 150; // 150-350 encounters per day
+        dateData[dateString] = Math.floor(Math.random() * 200) + 150;
       }
     } else {
-      // Generate data for the last 7 days (default behavior)
       const today = new Date();
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
         const dateString = date.toISOString().split('T')[0];
-        dateData[dateString] = Math.floor(Math.random() * 200) + 150; // 150-350 encounters per day
+        dateData[dateString] = Math.floor(Math.random() * 200) + 150;
       }
     }
 
@@ -489,9 +532,9 @@ export class FHIRService {
       const page = filters._page;
       const count = filters._count || 50;
       const offset = (page - 1) * count;
-      transformed._offset = page === 1 ? 50 : offset + 50;
+      transformed._offset = page === 1 ? 0 : offset;
     } else {
-      transformed._offset = 50;
+      transformed._offset = 0;
     }
 
     return transformed;

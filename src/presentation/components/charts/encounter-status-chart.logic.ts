@@ -55,11 +55,30 @@ export const useEncounterStatusChartLogic = () => {
       'opacity-0 group-hover:opacity-100 transition-opacity duration-200',
   });
 
+  const getCenterCircleClasses = () => ({
+    circle: 'shadow-sm',
+    totalText: 'text-lg font-bold text-gray-700',
+    labelText: 'text-xs text-gray-500',
+  });
+
+  const getLegendClasses = () => ({
+    container: 'grid grid-cols-3 gap-2',
+    item: 'flex items-center space-x-2 p-2 bg-gray-50 rounded text-xs',
+    colorDot: 'w-4 h-4 rounded-full flex-shrink-0 bg-gray-200',
+    content: 'flex-1 min-w-0',
+    header: 'flex justify-between items-center',
+    status: 'capitalize text-gray-700 font-medium truncate',
+    count: 'font-semibold text-gray-900 ml-2',
+    percentage: 'text-gray-500 text-xs',
+  });
+
   return {
     getStatusColors,
     calculateChartData,
     calculatePieSlice,
     getSingleStatusCircle,
     getSingleStatusBorder,
+    getCenterCircleClasses,
+    getLegendClasses,
   };
 };

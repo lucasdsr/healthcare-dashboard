@@ -1,6 +1,5 @@
 import '@testing-library/jest-dom';
 
-// Mock Next.js router
 jest.mock('next/router', () => ({
   useRouter() {
     return {
@@ -24,7 +23,6 @@ jest.mock('next/router', () => ({
   },
 }));
 
-// Mock Next.js navigation
 jest.mock('next/navigation', () => ({
   useRouter() {
     return {
@@ -44,10 +42,8 @@ jest.mock('next/navigation', () => ({
   },
 }));
 
-// Mock fetch
 global.fetch = jest.fn();
 
-// Mock localStorage
 const localStorageMock = {
   getItem: jest.fn(),
   setItem: jest.fn(),
@@ -58,7 +54,6 @@ const localStorageMock = {
 };
 global.localStorage = localStorageMock;
 
-// Mock sessionStorage
 const sessionStorageMock = {
   getItem: jest.fn(),
   setItem: jest.fn(),
@@ -69,21 +64,18 @@ const sessionStorageMock = {
 };
 global.sessionStorage = sessionStorageMock;
 
-// Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }));
 
-// Mock IntersectionObserver
 global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }));
 
-// Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation(query => ({
@@ -98,18 +90,16 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock window.scrollTo
 Object.defineProperty(window, 'scrollTo', {
   writable: true,
   value: jest.fn(),
 });
 
-// Mock console methods in tests
 const originalError = console.error;
 const originalWarn = console.warn;
 
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (...args: unknown[]) => {
     if (
       typeof args[0] === 'string' &&
       args[0].includes('Warning: ReactDOM.render is no longer supported')

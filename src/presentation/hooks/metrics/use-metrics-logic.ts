@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { DashboardMetrics } from '@/infrastructure/api/fhir-service';
 import { useEncounterStore } from '@/infrastructure/store/encounter-store';
+import { useDemoModeStore } from '@/infrastructure/store';
+import { useMockDataDetection } from '../use-mock-data-detection';
 
 interface UseMetricsLogicProps {
   metrics?: DashboardMetrics;
@@ -35,10 +37,10 @@ export const useMetricsLogic = ({
     [metrics?.dailyAverage]
   );
 
-  const isUsingMockData = useMemo(
-    () => totalEncounters > 50000,
-    [totalEncounters]
-  );
+  const { isEnabled: isDemoModeEnabled } = useDemoModeStore();
+
+  const { isUsingMockData, shouldShowDemoModeIndicator } =
+    useMockDataDetection();
 
   return {
     shouldShowLoading,
@@ -46,5 +48,6 @@ export const useMetricsLogic = ({
     activeEncounters,
     dailyAverage,
     isUsingMockData,
+    shouldShowDemoModeIndicator,
   };
 };

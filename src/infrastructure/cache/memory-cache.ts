@@ -96,7 +96,7 @@ export class MemoryCache<T> {
 
     return {
       size: this.cache.size,
-      hitRate: 0, // Would need to implement hit tracking for this
+      hitRate: 0,
       resourceTypeCounts,
       priorityCounts,
     };
@@ -118,7 +118,7 @@ export class MemoryCache<T> {
       const keysToEvict = Array.from(this.cache.entries())
         .filter(([, entry]) => entry.priority === priority)
         .sort(([, a], [, b]) => a.timestamp - b.timestamp)
-        .slice(0, Math.ceil(this.maxSize * 0.1)); // Evict 10% of max size
+        .slice(0, Math.ceil(this.maxSize * 0.1));
 
       if (keysToEvict.length > 0) {
         keysToEvict.forEach(([key]) => this.cache.delete(key));

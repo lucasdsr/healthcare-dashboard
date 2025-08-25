@@ -4,9 +4,8 @@ import {
   EncounterFilters as FHIREncounterFilters,
 } from '../api/fhir-service';
 import { EncounterFilters } from '@/shared/types/filters';
-import { useEncounterStore } from '../store/encounter-store';
+import { useEncounterStore, useDemoModeStore } from '../store';
 
-// Transform shared EncounterFilters to FHIR service format
 const transformFilters = (
   filters?: EncounterFilters
 ): FHIREncounterFilters | undefined => {
@@ -23,36 +22,49 @@ const transformFilters = (
 
 export const useDashboardMetrics = (filters?: EncounterFilters) => {
   const { setEncounters } = useEncounterStore();
+  const { isEnabled: isDemoModeEnabled } = useDemoModeStore();
 
   return useQuery({
-    queryKey: ['dashboard-metrics', filters],
+    queryKey: ['dashboard-metrics', filters, isDemoModeEnabled],
     queryFn: async () => {
       const transformedFilters = transformFilters(filters);
-      const metrics = await fhirService.getDashboardMetrics(transformedFilters);
+      const metrics = await fhirService.getDashboardMetrics(
+        transformedFilters,
+        isDemoModeEnabled
+      );
 
       if (filters) {
-        const encountersData =
-          await fhirService.getEncounters(transformedFilters);
+        const encountersData = await fhirService.getEncounters(
+          transformedFilters,
+          isDemoModeEnabled
+        );
         setEncounters(encountersData.encounters);
       }
 
       return metrics;
     },
-    staleTime: 30 * 1000, // 30 seconds - more responsive for dashboard
-    gcTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnMount: true, // Always refetch when component mounts
+    staleTime: 30 * 1000,
+    gcTime: 2 * 60 * 1000,
+    refetchOnMount: true,
   });
 };
 
 export const useEncounters = (filters?: EncounterFilters) => {
   const { setEncounters, setPagination } = useEncounterStore();
+  const { isEnabled: isDemoModeEnabled } = useDemoModeStore();
 
   const { _page, _count, ...searchFilters } = filters || {};
   const currentPage = _page || 1;
   const pageSize = _count || 50;
 
   return useQuery({
-    queryKey: ['encounters', searchFilters, currentPage, pageSize],
+    queryKey: [
+      'encounters',
+      searchFilters,
+      currentPage,
+      pageSize,
+      isDemoModeEnabled,
+    ],
     queryFn: async () => {
       try {
         const transformedFilters = transformFilters({
@@ -60,7 +72,11 @@ export const useEncounters = (filters?: EncounterFilters) => {
           _page: currentPage,
           _count: pageSize,
         });
-        const result = await fhirService.getEncounters(transformedFilters);
+
+        const result = await fhirService.getEncounters(
+          transformedFilters,
+          isDemoModeEnabled
+        );
 
         setEncounters(result.encounters);
         setPagination({
@@ -91,16 +107,20 @@ export const useEncounters = (filters?: EncounterFilters) => {
 
 export const useInfiniteEncounters = (filters?: EncounterFilters) => {
   const { setEncounters } = useEncounterStore();
+  const { isEnabled: isDemoModeEnabled } = useDemoModeStore();
 
   return useInfiniteQuery({
-    queryKey: ['encounters', 'infinite', filters],
+    queryKey: ['encounters', 'infinite', filters, isDemoModeEnabled],
     queryFn: async ({ pageParam = 1 }) => {
       const transformedFilters = transformFilters({
         ...filters,
         _page: pageParam as number,
         _count: filters?._count || 50,
       });
-      const result = await fhirService.getEncounters(transformedFilters);
+      const result = await fhirService.getEncounters(
+        transformedFilters,
+        isDemoModeEnabled
+      );
 
       setEncounters(result.encounters);
       return result;
@@ -119,11 +139,12 @@ export const useInfiniteEncounters = (filters?: EncounterFilters) => {
 
 export const useEncounter = (id: string) => {
   const { getEncounter, setEncounter } = useEncounterStore();
+  const { isEnabled: isDemoModeEnabled } = useDemoModeStore();
 
   return useQuery({
-    queryKey: ['encounter', id],
+    queryKey: ['encounter', id, isDemoModeEnabled],
     queryFn: async () => {
-      const encounter = await fhirService.getEncounter(id);
+      const encounter = await fhirService.getEncounter(id, isDemoModeEnabled);
       setEncounter(encounter);
       return encounter;
     },
@@ -136,26 +157,30 @@ export const useEncounter = (id: string) => {
 
 export const usePatient = (id: string) => {
   const { getPatient, setPatient } = useEncounterStore();
+  const { isEnabled: isDemoModeEnabled } = useDemoModeStore();
 
   return useQuery({
-    queryKey: ['patient', id],
+    queryKey: ['patient', id, isDemoModeEnabled],
     queryFn: async () => {
-      const patient = await fhirService.getPatient(id);
+      const patient = await fhirService.getPatient(id, isDemoModeEnabled);
       setPatient(patient);
       return patient;
     },
     enabled: !!id,
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    gcTime: 60 * 60 * 1000, // 1 hour
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
     initialData: getPatient(id),
   });
 };
 
-export const usePatientSearch = (query: string) =>
-  useQuery({
-    queryKey: ['patient-search', query],
-    queryFn: () => fhirService.searchPatients(query),
+export const usePatientSearch = (query: string) => {
+  const { isEnabled: isDemoModeEnabled } = useDemoModeStore();
+
+  return useQuery({
+    queryKey: ['patient-search', query, isDemoModeEnabled],
+    queryFn: () => fhirService.searchPatients(query, isDemoModeEnabled),
     enabled: query.length > 2,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
+};

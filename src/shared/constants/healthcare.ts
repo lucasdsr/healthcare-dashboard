@@ -63,10 +63,10 @@ export const HEALTHCARE_CONSTANTS = {
   },
 
   CACHE_TTL: {
-    SHORT: 5 * 60 * 1000, // 5 minutes
-    MEDIUM: 15 * 60 * 1000, // 15 minutes
-    LONG: 60 * 60 * 1000, // 1 hour
-    VERY_LONG: 24 * 60 * 60 * 1000, // 24 hours
+    SHORT: 5 * 60 * 1000,
+    MEDIUM: 15 * 60 * 1000,
+    LONG: 60 * 60 * 1000,
+    VERY_LONG: 24 * 60 * 60 * 1000,
   },
 
   PAGINATION: {

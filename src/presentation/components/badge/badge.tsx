@@ -17,6 +17,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
     return (
       <div
         ref={ref}
+        data-testid="badge"
         className={cn(badgeVariants({ variant, size, className }))}
         {...props}
       >

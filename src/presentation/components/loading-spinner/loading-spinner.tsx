@@ -23,7 +23,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   const textClasses = getTextClasses();
 
   return (
-    <div className={containerClasses}>
+    <div data-testid="loading-spinner" className={containerClasses}>
       <div className={spinnerClasses} />
       {text && <p className={textClasses}>{text}</p>}
     </div>

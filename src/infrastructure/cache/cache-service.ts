@@ -14,7 +14,7 @@ export interface CacheServiceEntry<T> {
 
 export class InMemoryCacheService implements CacheService {
   private cache = new Map<string, CacheServiceEntry<any>>();
-  private readonly defaultTTL = 5 * 60 * 1000; // 5 minutes
+  private readonly defaultTTL = 5 * 60 * 1000;
 
   async get<T>(key: string): Promise<T | null> {
     const entry = this.cache.get(key);
@@ -94,7 +94,7 @@ export class InMemoryCacheService implements CacheService {
 
 export class LocalStorageCacheService implements CacheService {
   private readonly prefix = 'healthcare_cache_';
-  private readonly defaultTTL = 5 * 60 * 1000; // 5 minutes
+  private readonly defaultTTL = 5 * 60 * 1000;
 
   private getFullKey(key: string): string {
     return `${this.prefix}${key}`;
@@ -129,18 +129,14 @@ export class LocalStorageCacheService implements CacheService {
       const entry: CacheServiceEntry<T> = { value, expiresAt };
 
       localStorage.setItem(fullKey, JSON.stringify(entry));
-    } catch (error) {
-      // Failed to cache item
-    }
+    } catch (error) {}
   }
 
   async delete(key: string): Promise<void> {
     try {
       const fullKey = this.getFullKey(key);
       localStorage.removeItem(fullKey);
-    } catch (error) {
-      // Ignore errors
-    }
+    } catch (error) {}
   }
 
   async clear(): Promise<void> {
@@ -149,9 +145,7 @@ export class LocalStorageCacheService implements CacheService {
       keys.forEach(key => {
         localStorage.removeItem(this.getFullKey(key));
       });
-    } catch (error) {
-      // Ignore errors
-    }
+    } catch (error) {}
   }
 
   async has(key: string): Promise<boolean> {

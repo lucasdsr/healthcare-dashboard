@@ -11,6 +11,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 
   return (
     <div
+      data-testid="skeleton"
       className={getSkeletonClasses(className)}
       style={{
         width: width,
@@ -25,7 +26,7 @@ export const MetricCardSkeleton: React.FC = () => {
   const classes = getMetricCardSkeletonClasses();
 
   return (
-    <div className={classes.container}>
+    <div data-testid="metric-card-skeleton" className={classes.container}>
       <div className={classes.header}>
         <Skeleton className={classes.title} />
         <Skeleton className={classes.icon} />

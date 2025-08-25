@@ -64,7 +64,8 @@ export const DateInput: React.FC<DateInputProps> = ({
               inputClasses.base,
               sizeClasses[size],
               inputClasses.state,
-              inputClasses.padding
+              inputClasses.padding,
+              '[-webkit-calendar-picker-indicator:hidden] [calendar-picker-indicator:hidden]'
             )}
             value={inputValue}
             onChange={handleInputChange}
@@ -81,7 +82,7 @@ export const DateInput: React.FC<DateInputProps> = ({
             <button
               type="button"
               onClick={handleClear}
-              className="absolute inset-y-0 right-8 flex items-center pr-2 text-neutral-400 hover:text-neutral-600 transition-colors"
+              className="absolute inset-y-0 right-3 flex items-center pr-3 text-neutral-400 hover:text-neutral-600 transition-colors"
               aria-label="Clear date"
             >
               <XMarkIcon className="w-4 h-4" />

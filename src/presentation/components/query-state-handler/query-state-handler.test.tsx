@@ -1,9 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import {
-  QueryStateHandler,
-  QueryStateHandlerWithHeader,
-} from '../query-state-handler';
+import { QueryStateHandler, QueryStateHandlerWithHeader } from './index';
 
 describe('QueryStateHandler', () => {
   it('renders children when no loading or error', () => {

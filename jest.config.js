@@ -1,12 +1,6 @@
-import nextJest from 'next/jest.js';
-
-const createJestConfig = nextJest({
-  dir: './',
-});
-
-const customJestConfig = {
+module.exports = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/domain/(.*)$': '<rootDir>/src/domain/$1',
@@ -14,12 +8,18 @@ const customJestConfig = {
     '^@/infrastructure/(.*)$': '<rootDir>/src/infrastructure/$1',
     '^@/presentation/(.*)$': '<rootDir>/src/presentation/$1',
     '^@/shared/(.*)$': '<rootDir>/src/shared/$1',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '^msw/node$': '<rootDir>/node_modules/msw/lib/node/index.js',
+    '^@mswjs/interceptors/ClientRequest$':
+      '<rootDir>/node_modules/@mswjs/interceptors/lib/node/interceptors/ClientRequest/index.js',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/test/**/*',
-    '!src/**/index.ts',
+    '!test/**/*',
+    '!e2e/**/*',
+    '!src/**/*.stories.{ts,tsx}',
+    '!src/**/index.{ts,tsx}',
     '!src/app/**/*',
   ],
   coverageThreshold: {
@@ -31,22 +31,19 @@ const customJestConfig = {
     },
   },
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
-    '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/__tests__/**/*.{ts,tsx}',
+    '<rootDir>/src/**/*.{test,spec}.{ts,tsx}',
   ],
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
+    '^.+\\.(js|jsx|ts|tsx)$': [
+      'babel-jest',
+      { configFile: './babel.config.test.js' },
+    ],
   },
-  transformIgnorePatterns: [
-    '/node_modules/',
-    '^.+\\.module\\.(css|sass|scss)$',
-  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/.next/'],
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  verbose: true,
+  testTimeout: 10000,
 };
-
-export default createJestConfig(customJestConfig);

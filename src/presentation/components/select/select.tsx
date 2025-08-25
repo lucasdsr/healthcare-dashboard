@@ -79,12 +79,12 @@ export const Select: React.FC<SelectProps> = ({
               )}
             </div>
 
-            <div className="flex items-center ml-2">
+            <div className="flex items-center ml-2 space-x-1">
               {clearable && value && !disabled && (
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors"
+                  className="p-1 text-neutral-400 hover:text-neutral-600 transition-colors flex-shrink-0 flex items-center justify-center"
                   aria-label="Clear selection"
                 >
                   <svg
@@ -103,9 +103,12 @@ export const Select: React.FC<SelectProps> = ({
                 </button>
               )}
               <ChevronDownIcon
-                className={cn('w-4 h-4 text-neutral-400 transition-transform', {
-                  'rotate-180': isOpen,
-                })}
+                className={cn(
+                  'w-4 h-4 text-neutral-400 transition-transform flex-shrink-0 flex items-center justify-center',
+                  {
+                    'rotate-180': isOpen,
+                  }
+                )}
               />
             </div>
           </div>

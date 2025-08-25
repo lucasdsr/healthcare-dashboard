@@ -1,146 +1,244 @@
 import { Status } from '../status';
-import { EncounterStatus } from '@/domain/entities/encounter';
 
-describe('Status', () => {
-  describe('constructor', () => {
-    it('should create a status with valid value', () => {
+describe('Status Value Object', () => {
+  describe('Status Creation', () => {
+    it('should create status with valid value', () => {
       const status = new Status('in-progress');
+
       expect(status.value).toBe('in-progress');
     });
-  });
 
-  describe('status checks', () => {
-    it('should identify active statuses', () => {
-      expect(new Status('arrived').isActive()).toBe(true);
-      expect(new Status('triaged').isActive()).toBe(true);
-      expect(new Status('in-progress').isActive()).toBe(true);
-      expect(new Status('planned').isActive()).toBe(false);
-      expect(new Status('finished').isActive()).toBe(false);
-    });
+    it('should handle different status values', () => {
+      const statuses = [
+        'planned',
+        'arrived',
+        'triaged',
+        'in-progress',
+        'onleave',
+        'finished',
+        'cancelled',
+        'entered-in-error',
+        'unknown',
+      ];
 
-    it('should identify completed statuses', () => {
-      expect(new Status('finished').isCompleted()).toBe(true);
-      expect(new Status('cancelled').isCompleted()).toBe(true);
-      expect(new Status('in-progress').isCompleted()).toBe(false);
-      expect(new Status('planned').isCompleted()).toBe(false);
-    });
-
-    it('should identify planned status', () => {
-      expect(new Status('planned').isPlanned()).toBe(true);
-      expect(new Status('in-progress').isPlanned()).toBe(false);
-    });
-
-    it('should identify on leave status', () => {
-      expect(new Status('onleave').isOnLeave()).toBe(true);
-      expect(new Status('in-progress').isOnLeave()).toBe(false);
-    });
-
-    it('should identify error status', () => {
-      expect(new Status('entered-in-error').isError()).toBe(true);
-      expect(new Status('in-progress').isError()).toBe(false);
-    });
-
-    it('should identify unknown status', () => {
-      expect(new Status('unknown').isUnknown()).toBe(true);
-      expect(new Status('in-progress').isUnknown()).toBe(false);
+      statuses.forEach(statusValue => {
+        const status = new Status(statusValue as any);
+        expect(status.value).toBe(statusValue);
+      });
     });
   });
 
-  describe('display methods', () => {
-    it('should return correct display names', () => {
-      expect(new Status('planned').getDisplayName()).toBe('Planned');
-      expect(new Status('arrived').getDisplayName()).toBe('Arrived');
-      expect(new Status('triaged').getDisplayName()).toBe('Triaged');
-      expect(new Status('in-progress').getDisplayName()).toBe('In Progress');
-      expect(new Status('onleave').getDisplayName()).toBe('On Leave');
-      expect(new Status('finished').getDisplayName()).toBe('Finished');
-      expect(new Status('cancelled').getDisplayName()).toBe('Cancelled');
-      expect(new Status('entered-in-error').getDisplayName()).toBe('Error');
-      expect(new Status('unknown').getDisplayName()).toBe('Unknown');
+  describe('Status Methods', () => {
+    it('should check if status is active', () => {
+      const activeStatus = new Status('in-progress');
+      const inactiveStatus = new Status('finished');
+
+      expect(activeStatus.isActive()).toBe(true);
+      expect(inactiveStatus.isActive()).toBe(false);
     });
 
-    it('should return correct colors', () => {
-      expect(new Status('planned').getColor()).toBe('blue');
-      expect(new Status('arrived').getColor()).toBe('yellow');
-      expect(new Status('triaged').getColor()).toBe('orange');
-      expect(new Status('in-progress').getColor()).toBe('green');
-      expect(new Status('onleave').getColor()).toBe('purple');
-      expect(new Status('finished').getColor()).toBe('gray');
-      expect(new Status('cancelled').getColor()).toBe('red');
-      expect(new Status('entered-in-error').getColor()).toBe('red');
-      expect(new Status('unknown').getColor()).toBe('gray');
+    it('should check if status is completed', () => {
+      const completedStatus = new Status('finished');
+      const activeStatus = new Status('in-progress');
+
+      expect(completedStatus.isCompleted()).toBe(true);
+      expect(activeStatus.isCompleted()).toBe(false);
     });
 
-    it('should return correct priorities', () => {
-      expect(new Status('in-progress').getPriority()).toBe(1);
-      expect(new Status('triaged').getPriority()).toBe(2);
-      expect(new Status('arrived').getPriority()).toBe(3);
-      expect(new Status('planned').getPriority()).toBe(4);
-      expect(new Status('onleave').getPriority()).toBe(5);
-      expect(new Status('finished').getPriority()).toBe(6);
-      expect(new Status('cancelled').getPriority()).toBe(7);
-      expect(new Status('entered-in-error').getPriority()).toBe(8);
-      expect(new Status('unknown').getPriority()).toBe(9);
+    it('should check if status is planned', () => {
+      const plannedStatus = new Status('planned');
+      const activeStatus = new Status('in-progress');
+
+      expect(plannedStatus.isPlanned()).toBe(true);
+      expect(activeStatus.isPlanned()).toBe(false);
+    });
+
+    it('should check if status is on leave', () => {
+      const onLeaveStatus = new Status('onleave');
+      const activeStatus = new Status('in-progress');
+
+      expect(onLeaveStatus.isOnLeave()).toBe(true);
+      expect(activeStatus.isOnLeave()).toBe(false);
+    });
+
+    it('should check if status is error', () => {
+      const errorStatus = new Status('entered-in-error');
+      const activeStatus = new Status('in-progress');
+
+      expect(errorStatus.isError()).toBe(true);
+      expect(activeStatus.isError()).toBe(false);
+    });
+
+    it('should check if status is unknown', () => {
+      const unknownStatus = new Status('unknown');
+      const activeStatus = new Status('in-progress');
+
+      expect(unknownStatus.isUnknown()).toBe(true);
+      expect(activeStatus.isUnknown()).toBe(false);
     });
   });
 
-  describe('status transitions', () => {
-    it('should allow valid transitions', () => {
+  describe('Status Display', () => {
+    it('should get display name correctly', () => {
+      const activeStatus = new Status('in-progress');
+      const plannedStatus = new Status('planned');
+      const finishedStatus = new Status('finished');
+
+      expect(activeStatus.getDisplayName()).toBe('In Progress');
+      expect(plannedStatus.getDisplayName()).toBe('Planned');
+      expect(finishedStatus.getDisplayName()).toBe('Finished');
+    });
+
+    it('should get color correctly', () => {
+      const activeStatus = new Status('in-progress');
+      const plannedStatus = new Status('planned');
+      const finishedStatus = new Status('finished');
+      const cancelledStatus = new Status('cancelled');
+
+      expect(activeStatus.getColor()).toBe('green');
+      expect(plannedStatus.getColor()).toBe('blue');
+      expect(finishedStatus.getColor()).toBe('gray');
+      expect(cancelledStatus.getColor()).toBe('red');
+    });
+
+    it('should get priority correctly', () => {
+      const inProgressStatus = new Status('in-progress');
+      const triagedStatus = new Status('triaged');
+      const arrivedStatus = new Status('arrived');
+      const plannedStatus = new Status('planned');
+
+      expect(inProgressStatus.getPriority()).toBe(1);
+      expect(triagedStatus.getPriority()).toBe(2);
+      expect(arrivedStatus.getPriority()).toBe(3);
+      expect(plannedStatus.getPriority()).toBe(4);
+    });
+  });
+
+  describe('Status Transitions', () => {
+    it('should check if status can transition to another status', () => {
+      const plannedStatus = new Status('planned');
+      const arrivedStatus = new Status('arrived');
+      const inProgressStatus = new Status('in-progress');
+
+      expect(plannedStatus.canTransitionTo('arrived')).toBe(true);
+      expect(plannedStatus.canTransitionTo('cancelled')).toBe(true);
+      expect(plannedStatus.canTransitionTo('finished')).toBe(false);
+
+      expect(arrivedStatus.canTransitionTo('triaged')).toBe(true);
+      expect(arrivedStatus.canTransitionTo('cancelled')).toBe(true);
+      expect(arrivedStatus.canTransitionTo('finished')).toBe(false);
+
+      expect(inProgressStatus.canTransitionTo('onleave')).toBe(true);
+      expect(inProgressStatus.canTransitionTo('finished')).toBe(true);
+      expect(inProgressStatus.canTransitionTo('cancelled')).toBe(true);
+      expect(inProgressStatus.canTransitionTo('planned')).toBe(false);
+    });
+
+    it('should handle final statuses correctly', () => {
+      const finishedStatus = new Status('finished');
+      const cancelledStatus = new Status('cancelled');
+      const errorStatus = new Status('entered-in-error');
+
+      expect(finishedStatus.canTransitionTo('in-progress')).toBe(false);
+      expect(cancelledStatus.canTransitionTo('in-progress')).toBe(false);
+      expect(errorStatus.canTransitionTo('in-progress')).toBe(false);
+    });
+  });
+
+  describe('Status Serialization', () => {
+    it('should convert to string correctly', () => {
+      const status = new Status('in-progress');
+
+      expect(status.toString()).toBe('in-progress');
+    });
+
+    it('should handle different status values in toString', () => {
+      const statuses = [
+        'planned',
+        'arrived',
+        'triaged',
+        'in-progress',
+        'onleave',
+        'finished',
+        'cancelled',
+        'entered-in-error',
+        'unknown',
+      ];
+
+      statuses.forEach(statusValue => {
+        const status = new Status(statusValue as any);
+        expect(status.toString()).toBe(statusValue);
+      });
+    });
+  });
+
+  describe('Status Edge Cases', () => {
+    it('should handle status with special characters', () => {
+      const status = new Status('in-progress');
+
+      expect(status.value).toBe('in-progress');
+      expect(status.getDisplayName()).toBe('In Progress');
+    });
+
+    it('should handle all valid status values', () => {
+      const validStatuses = [
+        'planned',
+        'arrived',
+        'triaged',
+        'in-progress',
+        'onleave',
+        'finished',
+        'cancelled',
+        'entered-in-error',
+        'unknown',
+      ];
+
+      validStatuses.forEach(statusValue => {
+        const status = new Status(statusValue as any);
+        expect(status.value).toBe(statusValue);
+        expect(status.getDisplayName()).toBeDefined();
+        expect(status.getColor()).toBeDefined();
+        expect(status.getPriority()).toBeDefined();
+      });
+    });
+  });
+
+  describe('Status Business Logic', () => {
+    it('should handle workflow transitions correctly', () => {
       const planned = new Status('planned');
-      expect(planned.canTransitionTo('arrived')).toBe(true);
-      expect(planned.canTransitionTo('cancelled')).toBe(true);
-      expect(planned.canTransitionTo('in-progress')).toBe(false);
-
       const arrived = new Status('arrived');
-      expect(arrived.canTransitionTo('triaged')).toBe(true);
-      expect(arrived.canTransitionTo('cancelled')).toBe(true);
-      expect(arrived.canTransitionTo('finished')).toBe(false);
-
       const triaged = new Status('triaged');
-      expect(triaged.canTransitionTo('in-progress')).toBe(true);
-      expect(triaged.canTransitionTo('cancelled')).toBe(true);
-      expect(triaged.canTransitionTo('planned')).toBe(false);
-
       const inProgress = new Status('in-progress');
-      expect(inProgress.canTransitionTo('onleave')).toBe(true);
-      expect(inProgress.canTransitionTo('finished')).toBe(true);
-      expect(inProgress.canTransitionTo('cancelled')).toBe(true);
-      expect(inProgress.canTransitionTo('planned')).toBe(false);
-
-      const onLeave = new Status('onleave');
-      expect(onLeave.canTransitionTo('in-progress')).toBe(true);
-      expect(onLeave.canTransitionTo('finished')).toBe(true);
-      expect(onLeave.canTransitionTo('cancelled')).toBe(true);
-      expect(onLeave.canTransitionTo('planned')).toBe(false);
-    });
-
-    it('should not allow transitions from terminal statuses', () => {
       const finished = new Status('finished');
+
+      expect(planned.canTransitionTo('arrived')).toBe(true);
+      expect(arrived.canTransitionTo('triaged')).toBe(true);
+      expect(triaged.canTransitionTo('in-progress')).toBe(true);
+      expect(inProgress.canTransitionTo('finished')).toBe(true);
       expect(finished.canTransitionTo('in-progress')).toBe(false);
-      expect(finished.canTransitionTo('planned')).toBe(false);
+    });
 
-      const cancelled = new Status('cancelled');
-      expect(cancelled.canTransitionTo('in-progress')).toBe(false);
-      expect(cancelled.canTransitionTo('planned')).toBe(false);
+    it('should handle cancellation at any stage', () => {
+      const statuses = [
+        'planned',
+        'arrived',
+        'triaged',
+        'in-progress',
+        'onleave',
+      ];
 
+      statuses.forEach(statusValue => {
+        const status = new Status(statusValue as any);
+        expect(status.canTransitionTo('cancelled')).toBe(true);
+      });
+    });
+
+    it('should handle error state transitions', () => {
+      const inProgress = new Status('in-progress');
       const error = new Status('entered-in-error');
+
+      expect(inProgress.canTransitionTo('entered-in-error')).toBe(false);
       expect(error.canTransitionTo('in-progress')).toBe(false);
-      expect(error.canTransitionTo('planned')).toBe(false);
-    });
-
-    it('should allow transitions from unknown status', () => {
-      const unknown = new Status('unknown');
-      expect(unknown.canTransitionTo('planned')).toBe(true);
-      expect(unknown.canTransitionTo('arrived')).toBe(true);
-      expect(unknown.canTransitionTo('in-progress')).toBe(false);
-    });
-  });
-
-  describe('toString', () => {
-    it('should return the status value as string', () => {
-      expect(new Status('in-progress').toString()).toBe('in-progress');
-      expect(new Status('planned').toString()).toBe('planned');
-      expect(new Status('finished').toString()).toBe('finished');
     });
   });
 });

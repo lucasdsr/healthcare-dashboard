@@ -14,9 +14,7 @@ export function register() {
             installingWorker.onstatechange = () => {
               if (installingWorker.state === 'installed') {
                 if (navigator.serviceWorker.controller) {
-                  // New content is available; please refresh.
                 } else {
-                  // Content is cached for offline use.
                 }
               }
             };
